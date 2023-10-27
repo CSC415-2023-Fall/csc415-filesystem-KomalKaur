@@ -14,52 +14,57 @@
 
 #include "freespace.h"
 #include "b_io.h"
-#include <stddef.h>
 
-// Define the size of the free space map in bytes
-#define MAP_SIZE 2442
+#define MAX_NUMBER_OF_BLOCKS 19531
 #define BLOCK_SIZE 512
 
-// initialize the free space map and return its starting blck
-unsigned int initializeFreeSpace()
+// initialize the free space map and return its starting block int initFreespaceMap()
+int initFreeSpace()
 {
-    // calculate number of blocks in free space map and make sure it is rounded up properly
-    unsigned int numberOfBlocks = (MAP_SIZE + BLOCK_SIZE - 1 / BLOCK_SIZE);
 
-    // allocate memory for the map its self
-    uint8_t *map = (uint8_t *)malloc(numberOfBlocks * BLOCK_SIZE);
+    int sizeOfMapBytes = (MAX_NUMBER_OF_BLOCKS / 8) + 1;
+    int sizeOfMapBlocks = ((sizeOfMapBytes) / BLOCK_SIZE) + 1;
+    
+    uint8_t *freeSpaceMap = (uint8_t *)malloc(sizeOfMapBytes);
+    
+    // if (freeSpaceMap == NULL){
+    //     return -1;
+    // }
 
-    // check if allocation was successful
-    if (map == NULL)
+    for (int i = 0; i < MAX_NUMBER_OF_BLOCKS; i++)
     {
-        return -1;
+        freeSpaceMap[i] = 0;
     }
 
-    // Initialize the free space map with the first 6 blocks marked as used by the VCB and the map itself
-    for (int i = 0; i < 6 * BLOCK_SIZE * 8; i++)
+    for (int i = 0; i < sizeOfMapBlocks; i++)
     {
-        // Calculate the byte index in the freeSpaceMap array
-        int byteIndex = i / 8;
-
-        // Calculate the bit index within the byte (0 to 7)
-        int bitIndex = i % 8;
-
-        // Create a bitmask with a single 1 at the bitIndex position (e.g., 00001000)
-        uint8_t bitmask = 1 << bitIndex;
-
-        // Use the bitwise OR-assignment operator to set the bit to 1 in the byte
-        map[byteIndex] |= bitmask;
+        setBit(*freeSpaceMap, i);
     }
 
-    // starting block of the map is 1 because the VCB takes up the 0th block
-    unsigned int startingBlock = 1;
+    int blocksWritten = LBAwrite(freeSpaceMap, sizeOfMapBlocks, 1);
 
-    // write map to disk
-    LBAwrite(map, numberOfBlocks, startingBlock);
+    if (blocksWritten != sizeOfMapBlocks){
+        printf("Error writing blocks");
+    }
 
-    // free map since it has been written to disk
-    free(map);
+    return 1;
+}
 
-    // return location of the beginning of the map
-    return startingBlock;
+setBit(uint8_t *freeSpaceMap, int n)
+{
+    int byteIndex = n / 8;
+    int bitIndex = n % 8;
+    uint8_t bitmask = 1 << (7 - bitIndex);
+
+    freeSpaceMap[byteIndex] |= bitmask;
+}
+
+clearBit(uint8_t *freeSpaceMap, int n)
+{
+    int byteIndex = n / 8;
+    int bitIndex = n % 8;
+    uint8_t bitmask = 1 << (7 - bitIndex);
+    bitmask = ~bitmask;
+
+    freeSpaceMap[byteIndex] &= bitmask;
 }
