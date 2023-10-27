@@ -51,18 +51,19 @@ typedef unsigned long long ull_t;
 
 // Defining
 #define VOLUME_NAME_SIZE 100
-#define SIGNATURE "StruggleFS"
+#define SIGNATURE 0x4C4F4C41
 #define SIGNATURE_SIZE 11
 #define MAX_BLOCKS 100
 #define MAX_SECTORS 100
 
 struct vcb{
-    char nameOfVolume[VOLUME_NAME_SIZE];
-    unsigned int totalBlocks;
-    unsigned int freeBlockCount;
+    char volumeName[VOLUME_NAME_SIZE]; // name of the volume
+    u_int64_t totalBlocks; 
+    u_int64_t freeBlockCount;
+    u_int32_t locFreeSpaceBitMap;
+    u_int32_t locRootDir;
     size_t blockSize;
-    char signature[SIGNATURE_SIZE];
-    int freeSpaceMap[MAX_BLOCKS][MAX_SECTORS];
+    ull_t Signature;
 } vcb;
 
 int startPartitionSystem (char * filename, uint64_t * volSize, uint64_t * blockSize);
