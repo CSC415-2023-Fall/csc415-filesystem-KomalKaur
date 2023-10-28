@@ -17,11 +17,11 @@
 
 #define MAX_NUMBER_OF_BLOCKS 19531
 #define BLOCK_SIZE 512
- 
 
 // initialize free space map with first blocks marked as used
 // if bit is set to 0 it is free, if bit is set to 1 it is taken
-int initFreeSpace() {
+int initFreeSpace()
+{
     // calculate how big our free space map will be in bytes so we can allocate precise amount
     int sizeOfMapBytes = (MAX_NUMBER_OF_BLOCKS / 8) + 1;
     // calculate how many blocks will be used by our free space map
@@ -30,25 +30,29 @@ int initFreeSpace() {
     // allocate bytes for map
     freeSpaceMap = (uint8_t *)malloc(sizeOfMapBytes);
 
-    //check if malloc succeeded
-    if (freeSpaceMap == NULL) {
+    // check if malloc succeeded
+    if (freeSpaceMap == NULL)
+    {
         fprintf(stderr, "Memory allocation failed\n");
         return -1;
     }
 
     // Set all bits to 0 (indicating all blocks as free)
-    for (int i = 0; i < sizeOfMapBytes; i++) {
-        freeSpaceMap[i] = 0; 
+    for (int i = 0; i < sizeOfMapBytes; i++)
+    {
+        freeSpaceMap[i] = 0;
     }
 
     // set the first bits as used because they hold the VCB and the free space map itself
-    for (int i = 0; i <= sizeOfMapBlocks; i++) {
+    for (int i = 0; i <= sizeOfMapBlocks; i++)
+    {
         setBit(i);
     }
 
     // write blocks to disk and check return value of LBAwrite
     int blocksWritten = LBAwrite(freeSpaceMap, sizeOfMapBlocks, 1);
-    if (blocksWritten != sizeOfMapBlocks) {
+    if (blocksWritten != sizeOfMapBlocks)
+    {
         fprintf(stderr, "Error writing blocks to disk\n");
         free(freeSpaceMap); // Free allocated memory before returning
         return -1;
@@ -59,47 +63,56 @@ int initFreeSpace() {
 
 // Allocate blocks method similar to Professor Bierman's example. The function will take number
 // of blocks requested and how many blocks should be in each extent. If the numbers are the same
-// this will ensure contigous allocation if possible. Will return an array of extents that 
+// this will ensure contigous allocation if possible. Will return an array of extents that
 // give start and count of contigous blocks.
-extent *allocateBlocks(int numBlocks, int minBlocksInExtent) {
+extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
+{
     // allocate memory for the array of extents which is numBlocks / minBlocksInExtent + 2 just in
     // case
-    extent *extentTable = (extent *)malloc(sizeof(extent) * 
-    (numBlocks / minBlocksInExtent + 2));
+    extent *extentTable = (extent *)malloc(sizeof(extent) *
+                                           (numBlocks / minBlocksInExtent + 2));
 
     // check if malloc succeeded
-    if (extentTable == NULL) {
+    if (extentTable == NULL)
+    {
         fprintf(stderr, "Memory allocation for extents failed\n");
         return NULL;
     }
 
     // number of blocks that have been set so far
     int blockCount = 0;
-    // index of extent within extent table 
+    // index of extent within extent table
     int extentIndex = 0;
     // where extent starts from
     int startBlock = 0;
 
     // loop until all requested blocks have been allocated
-    while (blockCount < numBlocks) {
+    while (blockCount < numBlocks)
+    {
         int consecutiveFreeBlocks = 0;
 
         // check for consecutive free blocks to allocate extents with
-        for (int i = startBlock; i < MAX_NUMBER_OF_BLOCKS; ++i) {
-            if (!checkBit(i)) {
-                if (consecutiveFreeBlocks == 0) {
-                    startBlock = i;   
+        for (int i = startBlock; i < MAX_NUMBER_OF_BLOCKS; ++i)
+        {
+            if (!checkBit(i))
+            {
+                if (consecutiveFreeBlocks == 0)
+                {
+                    startBlock = i;
                 }
                 // if free increment consecutive free blocks count
                 consecutiveFreeBlocks++;
-            } else {
+            }
+            else
+            {
                 // if used reset consecutive free blocks count
                 consecutiveFreeBlocks = 0;
             }
 
-            // if the number of consecutive free blocks satisfies minBlocks extent, add to the 
+            // if the number of consecutive free blocks satisfies minBlocks extent, add to the
             // extent table and set the bits used
-            if (consecutiveFreeBlocks >= minBlocksInExtent) {
+            if (consecutiveFreeBlocks >= minBlocksInExtent)
+            {
                 // set the extents start and count
                 extentTable[extentIndex].start = startBlock;
                 extentTable[extentIndex].count = consecutiveFreeBlocks;
@@ -112,7 +125,8 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent) {
                 int totalBitsSet = startBlock + consecutiveFreeBlocks;
 
                 // Mark allocated blocks as used
-                for (int j = startBlock; j < totalBitsSet; ++j) {
+                for (int j = startBlock; j < totalBitsSet; ++j)
+                {
                     setBit(j);
                 }
 
@@ -120,14 +134,24 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent) {
             }
         }
 
-        if (consecutiveFreeBlocks == 0) {
+        if (consecutiveFreeBlocks == 0)
+        {
             // No more free blocks found
             break;
         }
     }
 
+    // Write the updated map to disk after block allocation
+    int blocksWritten = LBAwrite(freeSpaceMap, (MAX_NUMBER_OF_BLOCKS / 8) + 1, 1);
+    if (blocksWritten != (MAX_NUMBER_OF_BLOCKS / BLOCK_SIZE + 1))
+    {
+        fprintf(stderr, "Error writing blocks to disk\n");
+        // Handle any necessary cleanup or error handling
+        return NULL; // Or any appropriate error indicator
+    }
+
     // debug
-   // printf("# of extents: %d\n", extentIndex);
+    // printf("# of extents: %d\n", extentIndex);
     // Set the last extent as indicator for the end of the array of extents
     extentTable[extentIndex].start = 0;
     extentTable[extentIndex].count = 0;
@@ -137,7 +161,8 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent) {
 }
 
 // helper function to set bits to used
-void setBit(int n) {
+void setBit(int n)
+{
     int byteIndex = n / 8;
     int bitIndex = n % 8;
     uint8_t bitmask = 1 << (7 - bitIndex);
@@ -145,7 +170,8 @@ void setBit(int n) {
 }
 
 // helper function to set bits to free
-void clearBit(int n) {
+void clearBit(int n)
+{
     int byteIndex = n / 8;
     int bitIndex = n % 8;
     uint8_t bitmask = ~(1 << (7 - bitIndex));
@@ -153,21 +179,28 @@ void clearBit(int n) {
 }
 
 // helper function to check if bit is free or used
-int checkBit(int n) {
+int checkBit(int n)
+{
     int byteIndex = n / 8;
     int bitIndex = n % 8;
     return (freeSpaceMap[byteIndex] & (1 << (7 - bitIndex))) != 0;
 }
 
 // debug function to print
-void printBitMap() {
-    for (int i = 0; i <  MAX_NUMBER_OF_BLOCKS; i++) {
-        if (i % 64 == 0 && i != 0) {
+void printBitMap()
+{
+    for (int i = 0; i < MAX_NUMBER_OF_BLOCKS; i++)
+    {
+        if (i % 64 == 0 && i != 0)
+        {
             printf("\n");
         }
-        if (freeSpaceMap[i / 8] & (1 << (7 - (i % 8)))) {
+        if (freeSpaceMap[i / 8] & (1 << (7 - (i % 8))))
+        {
             printf("1");
-        } else {
+        }
+        else
+        {
             printf("0");
         }
     }
