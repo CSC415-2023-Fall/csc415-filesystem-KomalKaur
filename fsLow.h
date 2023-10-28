@@ -49,8 +49,6 @@ typedef u_int32_t uint32_t;
 #endif
 typedef unsigned long long ull_t;
 
-
-
 int startPartitionSystem (char * filename, uint64_t * volSize, uint64_t * blockSize);
 
 int closePartitionSystem ();
@@ -74,6 +72,4 @@ void runFSLowTest();  //Do not use this, for testing only
 
 #define	PART_NOERROR 		0
 #define PART_ERR_INVALID	-4
-
-
 
