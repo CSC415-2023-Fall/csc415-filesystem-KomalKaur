@@ -47,12 +47,12 @@ int initFreeSpace() {
     }
 
     // write blocks to disk and check return value of LBAwrite
-    // int blocksWritten = LBAwrite(freeSpaceMap, sizeOfMapBlocks, 1);
-    // if (blocksWritten != sizeOfMapBlocks) {
-    //     fprintf(stderr, "Error writing blocks to disk\n");
-    //     free(freeSpaceMap); // Free allocated memory before returning
-    //     return -1;
-    // }
+    int blocksWritten = LBAwrite(freeSpaceMap, sizeOfMapBlocks, 1);
+    if (blocksWritten != sizeOfMapBlocks) {
+        fprintf(stderr, "Error writing blocks to disk\n");
+        free(freeSpaceMap); // Free allocated memory before returning
+        return -1;
+    }
 
     return 1;
 }
