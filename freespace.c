@@ -15,9 +15,6 @@
 #include "freespace.h"
 #include "b_io.h"
 
-uint64_t maxNumberOfBlocks;
-uint64_t bytesPerBlock;
-
 // initialize free space map with first blocks marked as used
 // if bit is set to 0 it is free, if bit is set to 1 it is taken
 int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
