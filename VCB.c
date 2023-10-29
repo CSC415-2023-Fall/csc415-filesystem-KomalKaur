@@ -1,5 +1,6 @@
 #include "VCB.h"
 #include "freespace.h"
+#include "directories.h"
 
 int initVCB(uint64_t numberOfBlocks, uint64_t blockSize){
     struct vcb* vcbMain = (struct vcb*)malloc(blockSize); // malloc a pointer to vcb
@@ -13,6 +14,7 @@ int initVCB(uint64_t numberOfBlocks, uint64_t blockSize){
 	vcbMain->Signature = SIGNATURE; // signature from hex: 0x4C4F4C41
 	vcbMain->freeBlockCount = numberOfBlocks; // because its empty rn
 	vcbMain->locFreeSpaceBitMap = initFreeSpace(numberOfBlocks, blockSize);
+    vcbMain-> locRootDir = initDirectory(10, blockSize, NULL);
 
     if(LBAwrite(vcbMain, 1, 0)){
         return 0;
