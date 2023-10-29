@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stddef.h>
+#include "fsLow.h"
 
 typedef struct extent {
     int start;

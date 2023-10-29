@@ -14,6 +14,7 @@
 
 #include "freespace.h"
 #include "b_io.h"
+#include "fsLow.h"
 
 // initialize free space map with first blocks marked as used
 // if bit is set to 0 it is free, if bit is set to 1 it is taken
@@ -58,6 +59,7 @@ int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
         return -1;
     }
 
+    free(freeSpaceMap);
     return 1;
 }
 
@@ -145,7 +147,7 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     int blocksWritten = LBAwrite(freeSpaceMap, (maxNumberOfBlocks / 8) + 1, 1);
     if (blocksWritten != (maxNumberOfBlocks / bytesPerBlock + 1))
     {
-        fprintf(stderr, "Error writing blocks to disk\n");
+        printf("Error writing blocks to disk\n");
         // Handle any necessary cleanup or error handling
         return NULL; // Or any appropriate error indicator
     }
