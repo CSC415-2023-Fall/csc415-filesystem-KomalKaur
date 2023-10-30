@@ -11,7 +11,8 @@
 *
 * File: freespace.h
 *
-* Description: Basic File System - Freespace Map
+* Description: This header files contains the function 
+* definitions for the functions we will be using.
 *
 **************************************************************/
 
@@ -24,6 +25,7 @@
 #include <stddef.h>
 #include "fsLow.h"
 
+// struct used to store extents with a start block and count of how many blocks extent is
 typedef struct extent {
     int start;
     int count;

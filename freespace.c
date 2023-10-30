@@ -11,7 +11,8 @@
 *
 * File: freespace.c
 *
-* Description: Basic File System - Freespace Map
+* Description: This file contains our free space manager and 
+* all the helper functions needed.
 *
 **************************************************************/
 

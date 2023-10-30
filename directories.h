@@ -11,8 +11,9 @@
 *
 * File: directories.h
 *
-* Description: Basic File System - directories
-*
+* Description: 
+* Header file holds the definitions used to initialize a 
+* directory.
 **************************************************************/
 #ifndef DIRECTORIES_H
 #define DIRECTORIES_H

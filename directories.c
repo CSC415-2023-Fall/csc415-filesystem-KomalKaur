@@ -11,8 +11,11 @@
 *
 * File: directories.c
 *
-* Description: Basic File System - directories
-*
+* Description: 
+* This file contains the initDirectory() funtction which 
+* intializes a directory. It sets inital metadata for each 
+* entry and handles the "." and ".." structure for file
+* systems. The directory is then written to disk
 **************************************************************/
 
 #include <time.h>
@@ -26,12 +29,14 @@
 
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 {
+    // there has to be at least 1 directory entry
     if (initialDirEntries <= 0)
     {
         printf("Error: Invalid number of initial directory entries.\n");
         return -1;
     }
 
+    // calculate size of directory in both blocks and bytes
     int rootDirSizeBytes = initialDirEntries * sizeof(DirEntry);
     int rootDirSizeBlocks = (rootDirSizeBytes + (blockSize - 1) / blockSize);
 
@@ -39,8 +44,10 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
     int actualDirEntries = rootDirSizeBytes / sizeof(DirEntry);
 
+    // allocate memory for the directory entries
     DirEntry *directoryEntries = malloc(actualDirEntries * sizeof(DirEntry));
 
+    // check if malloc succeeded
     if (directoryEntries == NULL)
     {
         printf("Error: Memory allocation failed for directory entries.\n");
@@ -61,6 +68,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
     time_t t = time(NULL);
 
+    // create root directory
     strcpy(directoryEntries[0].fileName, ".");
     directoryEntries[0].size = actualDirEntries * sizeof(DirEntry);
     directoryEntries[0].isDirectory = 1;
@@ -69,10 +77,12 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     directoryEntries[0].lastModified = t;
     directoryEntries[0].extentTable =  allocateBlocks(rootDirSizeBlocks, rootDirSizeBlocks);
 
+    // return start block of where directory entries start on disk
     int startBlock = directoryEntries[0].extentTable->start;
 
     DirEntry *firstEntryPtr;
     
+    // handle root directory case 
     if (parent != NULL)
     {
         firstEntryPtr = parent;
@@ -91,8 +101,9 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
     }
 
+    // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
     free(directoryEntries);
 
-    return startBlock; // Return 0 indicating successful initialization
+    return startBlock; // Return start block of directory entries
 }
