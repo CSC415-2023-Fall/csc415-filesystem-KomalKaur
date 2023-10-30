@@ -9,7 +9,6 @@
 
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 {
-    printf("directories.c - running initDirectories..\n");
     if (initialDirEntries <= 0)
     {
         printf("Error: Invalid number of initial directory entries.\n");
@@ -31,9 +30,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         return -1;
     }
 
-    printf("Here! Initialize directory entries! actualDirEntries: %d\n", actualDirEntries);
     // Initialize directory entries
-
     for (int i = 0; i < actualDirEntries; ++i)
     {
         directoryEntries[i].fileName[0] = '\0';
@@ -44,9 +41,6 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[i].timeCreated = 0;
         directoryEntries[i].isDirectory = 0;
     }
-
-
-    printf("Here! After initializing\n");
 
     time_t t = time(NULL);
 
@@ -68,7 +62,6 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     }
     else if (parent == NULL)
     {
-        printf("This is the parent! The root directory is here!\n");
         firstEntryPtr = &directoryEntries[0];
 
         // Copy details for the ".." directory entry (parent directory)
@@ -84,6 +77,5 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
     free(directoryEntries);
 
-    printf("directories.c - initDirectories DONE...\n");
     return startBlock; // Return 0 indicating successful initialization
 }

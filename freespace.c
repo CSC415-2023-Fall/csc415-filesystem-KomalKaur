@@ -20,7 +20,6 @@
 // if bit is set to 0 it is free, if bit is set to 1 it is taken
 int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
 {
-    printf("freespace.c - Running initFreeSpace()\n");
     maxNumberOfBlocks = numberOfBlocks;
     bytesPerBlock = blockSize;
 
@@ -60,8 +59,7 @@ int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
         return -1;
     }
 
-    free(freeSpaceMap);
-    printf("freespace.c -  DONE initFreeSpace\n");
+    // free(freeSpaceMap);
     return 1;
 }
 
@@ -146,7 +144,7 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     }
 
     // Write the updated map to disk after block allocation
-    int blocksWritten = LBAwrite(freeSpaceMap, (maxNumberOfBlocks / 8) + 1, 1); 
+    int blocksWritten = LBAwrite(freeSpaceMap, 5, 1); 
 
     // debug
     // printf("# of extents: %d\n", extentIndex);

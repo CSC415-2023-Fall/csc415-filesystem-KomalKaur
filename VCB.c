@@ -5,7 +5,6 @@
 void printVCBinf(struct vcb* t1);
 
 int initVCB(uint64_t numberOfBlocks, uint64_t blockSize){
-	printf("Running initVCB...\n");
     struct vcb* vcbMain = (struct vcb*)malloc(blockSize); // malloc a pointer to vcb
 	if(vcbMain == NULL){
 		perror("Failed to allocate mem for vcb pointer");
@@ -20,10 +19,11 @@ int initVCB(uint64_t numberOfBlocks, uint64_t blockSize){
     vcbMain-> locRootDir = initDirectory(10, blockSize, NULL);
 
     if(LBAwrite(vcbMain, 1, 0)){
+		printVCBinf(vcbMain);
 		free(vcbMain);
         return 0;
     }
-	printVCBinf(vcbMain);
+	
 }
 
 void printVCBinf(struct vcb* t1){
