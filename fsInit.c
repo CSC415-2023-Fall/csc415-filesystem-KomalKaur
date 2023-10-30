@@ -23,17 +23,24 @@
 
 #include "fsLow.h"
 #include "mfs.h"
-#include "VCB.h"
+#include "VCB.c"
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
+		printf("Running initFileSystem...\n");
 		struct vcb* tempVCB = (struct vcb*)malloc(blockSize);
+		printVCBinf(tempVCB);
 		LBAread(tempVCB,1, 0);
-		if(tempVCB->Signature == SIGNATURE){ // checking if signature matches
-			return 0; // volume already is initalized
-		}else {
-			initVCB(numberOfBlocks, blockSize);
-		}
+
+		// if(tempVCB->Signature == SIGNATURE){ // checking if signature matches
+		// 	printf("tempSig: %lld vs ourSig: %d\n", tempVCB->Signature, SIGNATURE);
+		// 	printVCBinf(tempVCB);
+		// 	return 0; // volume already is initalized
+		// }else {
+		// 	printf("Gotta initVCB...\n");
+		// 	initVCB(numberOfBlocks, blockSize);
+		// }
+		initVCB(numberOfBlocks, blockSize);
 
 	printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
 	/* TODO: Add any code you need to initialize your file system. */
