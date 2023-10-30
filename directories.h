@@ -1,3 +1,19 @@
+/**************************************************************
+* Class:  CSC-415-01 Fall 2023
+* Names: Collins Gichohi, Louis Houston, Komaldeep Kaur,
+* 			Raymond Liu, Aleia Natividad
+* Student IDs: 922440815, 922379442, 920198887, 916624142, 
+*				922439437
+* GitHub Name: gsnilloC, LouisHouston, komalkaaur, Airray117
+*				leileigoose
+* Group Name: The Strugglers
+* Project: Basic File System
+*
+* File: directories.h
+*
+* Description: Basic File System - directories
+*
+**************************************************************/
 #ifndef DIRECTORIES_H
 #define DIRECTORIES_H
 

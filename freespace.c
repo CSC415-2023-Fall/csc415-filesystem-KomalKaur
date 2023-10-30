@@ -1,16 +1,19 @@
 /**************************************************************
- * Class:  CSC-415-01 Fall 2023
- * Names:
- * Student IDs:
- * GitHub Name:
- * Group Name:
- * Project: Basic File System
- *
- * File: freespace.c
- *
- * Description: Basic File System: Freespace Map
- *
- **************************************************************/
+* Class:  CSC-415-01 Fall 2023
+* Names: Collins Gichohi, Louis Houston, Komaldeep Kaur,
+* 			Raymond Liu, Aleia Natividad
+* Student IDs: 922440815, 922379442, 920198887, 916624142, 
+*				922439437
+* GitHub Name: gsnilloC, LouisHouston, komalkaaur, Airray117
+*				leileigoose
+* Group Name: The Strugglers
+* Project: Basic File System
+*
+* File: freespace.c
+*
+* Description: Basic File System - Freespace Map
+*
+**************************************************************/
 
 #include "freespace.h"
 #include "b_io.h"
