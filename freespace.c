@@ -14,18 +14,19 @@
 
 #include "freespace.h"
 #include "b_io.h"
-
-#define MAX_NUMBER_OF_BLOCKS 19531
-#define BLOCK_SIZE 512
+#include "fsLow.h"
 
 // initialize free space map with first blocks marked as used
 // if bit is set to 0 it is free, if bit is set to 1 it is taken
-int initFreeSpace()
+int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
 {
+    maxNumberOfBlocks = numberOfBlocks;
+    bytesPerBlock = blockSize;
+
     // calculate how big our free space map will be in bytes so we can allocate precise amount
-    int sizeOfMapBytes = (MAX_NUMBER_OF_BLOCKS / 8) + 1;
+    int sizeOfMapBytes = (maxNumberOfBlocks / 8) + 1;
     // calculate how many blocks will be used by our free space map
-    int sizeOfMapBlocks = (sizeOfMapBytes + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    int sizeOfMapBlocks = (sizeOfMapBytes + blockSize - 1) / blockSize;
 
     // allocate bytes for map
     freeSpaceMap = (uint8_t *)malloc(sizeOfMapBytes);
@@ -58,6 +59,7 @@ int initFreeSpace()
         return -1;
     }
 
+    // free(freeSpaceMap);
     return 1;
 }
 
@@ -92,7 +94,7 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
         int consecutiveFreeBlocks = 0;
 
         // check for consecutive free blocks to allocate extents with
-        for (int i = startBlock; i < MAX_NUMBER_OF_BLOCKS; ++i)
+        for (int i = startBlock; i < maxNumberOfBlocks; ++i)
         {
             if (!checkBit(i))
             {
@@ -142,13 +144,7 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     }
 
     // Write the updated map to disk after block allocation
-    int blocksWritten = LBAwrite(freeSpaceMap, (MAX_NUMBER_OF_BLOCKS / 8) + 1, 1);
-    if (blocksWritten != (MAX_NUMBER_OF_BLOCKS / BLOCK_SIZE + 1))
-    {
-        fprintf(stderr, "Error writing blocks to disk\n");
-        // Handle any necessary cleanup or error handling
-        return NULL; // Or any appropriate error indicator
-    }
+    int blocksWritten = LBAwrite(freeSpaceMap, 5, 1); 
 
     // debug
     // printf("# of extents: %d\n", extentIndex);
@@ -189,7 +185,7 @@ int checkBit(int n)
 // debug function to print
 void printBitMap()
 {
-    for (int i = 0; i < MAX_NUMBER_OF_BLOCKS; i++)
+    for (int i = 0; i < maxNumberOfBlocks; i++)
     {
         if (i % 64 == 0 && i != 0)
         {

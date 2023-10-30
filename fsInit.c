@@ -23,12 +23,14 @@
 
 #include "fsLow.h"
 #include "mfs.h"
-#include "VCB.h"
+#include "VCB.c"
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
 		struct vcb* tempVCB = (struct vcb*)malloc(blockSize);
+
 		LBAread(tempVCB,1, 0);
+
 		if(tempVCB->Signature == SIGNATURE){ // checking if signature matches
 			return 0; // volume already is initalized
 		}else {

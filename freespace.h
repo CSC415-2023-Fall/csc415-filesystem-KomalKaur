@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stddef.h>
+#include "fsLow.h"
 
 typedef struct extent {
     int start;
@@ -26,10 +27,13 @@ typedef struct extent {
 } extent, * pextent;
 
 uint8_t *freeSpaceMap = NULL; 
+uint64_t maxNumberOfBlocks;
+uint64_t bytesPerBlock;
+
 
 // called to when volume is initialized. returns block number
 // of where map starts
-int initFreeSpace();
+int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize);
 
 // if volume is already initialized load the free space map
 // from disk so it is in memory and ready to use
