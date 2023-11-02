@@ -1,24 +1,27 @@
 /**************************************************************
-* Class:  CSC-415-01 Fall 2023
-* Names: Collins Gichohi, Louis Houston, Komaldeep Kaur,
-* 			Raymond Liu, Aleia Natividad
-* Student IDs: 922440815, 922379442, 920198887, 916624142, 
-*				922439437
-* GitHub Name: gsnilloC, LouisHouston, komalkaaur, Airray117
-*				leileigoose
-* Group Name: The Strugglers
-* Project: Basic File System
-*
-* File: directories.c
-*
-* Description: 
-* This file contains the initDirectory() funtction which 
-* intializes a directory. It sets inital metadata for each 
-* entry and handles the "." and ".." structure for file
-* systems. The directory is then written to disk
-**************************************************************/
+ * Class:  CSC-415-01 Fall 2023
+ * Names: Collins Gichohi, Louis Houston, Komaldeep Kaur,
+ * 			Raymond Liu, Aleia Natividad
+ * Student IDs: 922440815, 922379442, 920198887, 916624142,
+ *				922439437
+ * GitHub Name: gsnilloC, LouisHouston, komalkaaur, Airray117
+ *				leileigoose
+ * Group Name: The Strugglers
+ * Project: Basic File System
+ *
+ * File: directories.c
+ *
+ * Description:
+ * This file contains the initDirectory() funtction which
+ * intializes a directory. It sets inital metadata for each
+ * entry and handles the "." and ".." structure for file
+ * systems. The directory is then written to disk
+ **************************************************************/
 
 #include "directories.h"
+
+DirEntry *rootDir;
+DirEntry *cwd;
 
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 {
@@ -68,14 +71,14 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     directoryEntries[0].timeCreated = t;
     directoryEntries[0].lastAccessed = t;
     directoryEntries[0].lastModified = t;
-    directoryEntries[0].extentTable =  allocateBlocks(rootDirSizeBlocks, rootDirSizeBlocks);
+    directoryEntries[0].extentTable = allocateBlocks(rootDirSizeBlocks, rootDirSizeBlocks);
 
     // return start block of where directory entries start on disk
     int startBlock = directoryEntries[0].extentTable->start;
 
     DirEntry *firstEntryPtr;
-    
-    // handle root directory case 
+
+    // handle root directory case
     if (parent != NULL)
     {
         firstEntryPtr = parent;
@@ -101,11 +104,135 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     return startBlock; // Return start block of directory entries
 }
 
-int parsePath (char * pathname, ppInfo * ppi){
-    if (pathname == NULL || ppi == NULL){
+int parsePath(char *pathname, ppInfo *ppi)
+{
+    if (pathname == NULL || ppi == NULL)
+    {
         return -1;
     }
 
+    DirEntry * startPath = malloc(sizeof(DirEntry));
+    DirEntry * parent = malloc(sizeof(DirEntry));
 
+    if (pathname[0] == '/')
+    {
+        startPath = rootDir;
+    }
+    else
+    {
+        startPath = cwd;
+    }
+
+    parent = startPath;
+
+    char* token1, saveptr;
+    token1 = strtok_r(pathname, "/", &saveptr);
+
+    if (token1 == NULL){
+        if (strcmp(pathname,"/") == 0){
+            ppi->parent = parent;
+            ppi->index = -1;
+            ppi->lastElement = NULL;
+
+            return 0;
+        }
+
+        return -1;
+    }
+    
+    char * token2;
+    while (token1 != NULL){
+            int index;
+        
+        int index = findEntryInDir(parent, token1);  // look for name in directory entries one by one
+        token2 = strtok_r(NULL,"/", &saveptr);
+        if (token2 == NULL){
+            ppi->parent = parent;
+            ppi->lastElement = strDup(token1);
+            ppi->index = index;
+
+            return 0;
+        }
+
+        if (index == -1){
+            return -2;
+        }
+
+        if (!isDir(&parent[index])){
+            return -2;
+        }
+
+        // DirEntry * temp = LoadDir (&(parent[index]));
+
+        if (parent != startPath){
+            free(parent);
+        }
+        
+        // parent = temp;
+        token1 = token2;
+    }
+
+    free(startPath);
     return 0;
+}
+
+int isDir(DirEntry *entry) {
+    if (entry == NULL) {
+        return -1; // Error code for invalid input
+    }
+
+    if (entry->isDirectory == 1) {
+        return 1; // Entry is a directory
+    } else {
+        return 0; // Entry is not a directory
+    }
+}
+
+
+int findEntryInDir(DirEntry *directory, char *entryName) {
+    if (directory == NULL || entryName == NULL) {
+        return -1; // Error code for invalid inputs
+    }
+
+    int numEntries = directory->size / sizeof(DirEntry);
+
+    for (int i = 0; i < numEntries; i++) {
+        if (strcmp(directory[i].fileName, entryName) == 0) {
+            return i; // Return the index of the found directory entry
+        }
+    }
+
+    return -1; // Return -1 if the entry is not found in the directory
+}
+
+
+DirEntry *LoadDir(DirEntry *entry) {
+    if (entry == NULL || entry->isDirectory == 0) {
+        return NULL; // Return NULL if the entry is not a valid directory
+    }
+
+    extent *dirExtent = entry->extentTable;
+
+    // Calculate the number of blocks to read for the directory based on its extent information
+    uint64_t blockSize = 512;  
+    uint64_t totalBlocksToRead = dirExtent->count;
+    uint64_t startBlock = dirExtent->start;
+
+    // Calculate the size in bytes to read
+    uint64_t sizeToRead = totalBlocksToRead * blockSize;
+
+    // Allocate memory to store the directory structure
+    DirEntry *directoryStructure = (DirEntry *)malloc(sizeToRead);
+
+    // Read the directory structure from disk using LBAread
+    uint64_t blocksRead = LBAread(directoryStructure, totalBlocksToRead, startBlock);
+
+    // Perform error handling and return NULL in case of failure
+    if (blocksRead != totalBlocksToRead) {
+        free(directoryStructure); // Free allocated memory in case of failure
+        return NULL;
+    }
+
+    // Returning the directory structure
+    return directoryStructure;
 }
