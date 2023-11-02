@@ -72,6 +72,8 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     directoryEntries[0].lastAccessed = t;
     directoryEntries[0].lastModified = t;
     directoryEntries[0].extentTable = allocateBlocks(rootDirSizeBlocks, rootDirSizeBlocks);
+    rootDir = & directoryEntries[0];
+    cwd = rootDir;
 
     // return start block of where directory entries start on disk
     int startBlock = directoryEntries[0].extentTable->start;
@@ -97,6 +99,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
     }
 
+    
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
     free(directoryEntries);
@@ -162,13 +165,13 @@ int parsePath(char *pathname, ppInfo *ppi)
             return -2;
         }
 
-        // DirEntry * temp = LoadDir (&(parent[index]));
+        DirEntry * temp = LoadDir (&(parent[index]));
 
         if (parent != startPath){
             free(parent);
         }
         
-        // parent = temp;
+        parent = temp;
         token1 = token2;
     }
 
@@ -181,12 +184,9 @@ int isDir(DirEntry *entry) {
         return -1; // Error code for invalid input
     }
 
-    if (entry->isDirectory == 1) {
-        return 1; // Entry is a directory
-    } else {
-        return 0; // Entry is not a directory
-    }
+    return entry->isDirectory; // Return directory status (1 for directory, 0 for not a directory)
 }
+
 
 
 int findEntryInDir(DirEntry *directory, char *entryName) {
