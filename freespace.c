@@ -17,8 +17,6 @@
 **************************************************************/
 
 #include "freespace.h"
-#include "b_io.h"
-#include "fsLow.h"
 
 // initialize free space map with first blocks marked as used
 // if bit is set to 0 it is free, if bit is set to 1 it is taken

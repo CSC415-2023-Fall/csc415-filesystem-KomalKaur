@@ -25,6 +25,8 @@
 #include "freespace.h"
 #include "b_io.h"
 #include "fsLow.h"
+#include "directories.h"
+#include "mfs.h"
 
 #define MAX_FILE_NAME 256
 
@@ -39,5 +41,7 @@ typedef struct {
 } DirEntry;
 
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent);
+
+int parsePath (char * pathname, ppInfo * ppi);
 
 #endif

@@ -18,13 +18,6 @@
 * systems. The directory is then written to disk
 **************************************************************/
 
-#include <time.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "freespace.h"
-#include "b_io.h"
-#include "fsLow.h"
 #include "directories.h"
 
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
@@ -106,4 +99,13 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     free(directoryEntries);
 
     return startBlock; // Return start block of directory entries
+}
+
+int parsePath (char * pathname, ppInfo * ppi){
+    if (pathname == NULL || ppi == NULL){
+        return -1;
+    }
+
+
+    return 0;
 }
