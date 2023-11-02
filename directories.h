@@ -40,6 +40,13 @@ typedef struct {
     char isDirectory;
 } DirEntry;
 
+typedef struct ppInfo {
+	DirEntry * parent;
+	int index;
+	char * lastElement;
+	//isPathValid();
+} ppInfo;
+
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent);
 
 int parsePath (char * pathname, ppInfo * ppi);

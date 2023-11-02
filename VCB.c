@@ -15,8 +15,6 @@
 *
 **************************************************************/
 #include "VCB.h"
-#include "freespace.c"
-#include "directories.c"
 
 void printVCBinf(struct vcb* t1);
 

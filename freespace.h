@@ -31,9 +31,6 @@ typedef struct extent {
     int count;
 } extent, * pextent;
 
-uint8_t *freeSpaceMap = NULL; 
-uint64_t maxNumberOfBlocks;
-uint64_t bytesPerBlock;
 
 
 // called to when volume is initialized. returns block number

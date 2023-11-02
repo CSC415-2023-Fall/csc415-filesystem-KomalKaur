@@ -17,6 +17,8 @@
 #include <stddef.h>
 #include <string.h>
 #include "fsLow.h"
+#include "freespace.c"
+#include "directories.c"
 
 // Defining 
 #define VOLUME_NAME_SIZE 100
