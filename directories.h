@@ -50,5 +50,8 @@ typedef struct ppInfo {
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent);
 
 int parsePath (char * pathname, ppInfo * ppi);
+int findEntryInDir(DirEntry *directory, char *entryName);
+DirEntry *LoadDir(DirEntry *entry);
+int isDir(DirEntry *entry);
 
 #endif

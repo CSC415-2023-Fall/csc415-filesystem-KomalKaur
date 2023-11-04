@@ -147,9 +147,7 @@ int parsePath(char *pathname, ppInfo *ppi)
     
     char * token2;
     while (token1 != NULL){
-            int index;
-        
-        //int index = findEntryInDir(parent, token1);  // look for name in directory entries one by one
+        int index = findEntryInDir(parent, token1);  // look for name in directory entries one by one
         token2 = strtok_r(NULL,"/", &saveptr);
         if (token2 == NULL){
             ppi->parent = parent;
@@ -163,17 +161,17 @@ int parsePath(char *pathname, ppInfo *ppi)
             return -2;
         }
 
-        // if (!isDir(&parent[index])){
-        //     return -2;
-        // }
+        if (!isDir(&parent[index])){
+            return -2;
+        }
 
-        //DirEntry * temp = LoadDir (&(parent[index]));
+        DirEntry * temp = LoadDir (&(parent[index]));
 
         if (parent != startPath){
             free(parent);
         }
         
-        //parent = temp;
+        parent = temp;
         token1 = token2;
     }
 
