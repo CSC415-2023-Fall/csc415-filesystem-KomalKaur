@@ -138,7 +138,6 @@ int parsePath(char *pathname, ppInfo *ppi)
             ppi->parent = parent;
             ppi->index = -1;
             ppi->lastElement = NULL;
-
             return 0;
         }
 
@@ -175,9 +174,35 @@ int parsePath(char *pathname, ppInfo *ppi)
         token1 = token2;
     }
 
+      printf("Parsing successful!\n");
+        printf("Parent directory: %p\n", (void*)ppi->parent);
+        printf("Index: %d\n", ppi->index);
+        printf("Last Element: %s\n", ppi->lastElement);
+
     free(startPath);
     return 0;
 }
+
+void testParsePath() {
+    ppInfo *testPathInfo = malloc(sizeof(ppInfo)); // Allocate memory for path information
+
+    // Test with the pathname "/"
+    char pathname[] = "/";
+    int result = parsePath(pathname, testPathInfo);
+
+    if (result == 0) {
+        // Parsing successful, print the extracted information
+        printf("Parsing successful!\n");
+        printf("Parent directory: %p\n", (void*)(testPathInfo->parent));
+        printf("Index: %d\n", testPathInfo->index);
+        printf("Last Element: %s\n", testPathInfo->lastElement);
+    } else {
+        printf("Error while parsing the path.\n");
+    }
+
+    free(testPathInfo); // Free the allocated memory for path information
+}
+
 
 int isDir(DirEntry *entry) {
     if (entry == NULL) {
