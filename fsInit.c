@@ -28,6 +28,7 @@
 #include "mfs.h"
 #include "VCB.c"
 #include "directories.h"
+#include "mfs.c"
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
@@ -37,7 +38,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 		if(tempVCB->Signature == SIGNATURE){ // checking if signature matches
 			printf("\nTESTING TESTING \n");
-			testParsePath();
+			printf("%d", fs_isFile("/"));
 			return 0; // volume already is initalized
 		}else {
 			initVCB(numberOfBlocks, blockSize);

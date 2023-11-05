@@ -20,5 +20,55 @@ int fs_mkdir(const char *pathname, mode_t mode){
 }
 
 int fs_isDir(char * pathname){
+    ppInfo * pathInfo = malloc(sizeof(ppInfo));
+
+    int returnVal = parsePath(pathname, pathInfo);
+
+    if (returnVal != 0){
+        free(pathInfo);
+        return -1;
+    }
+
+    DirEntry * entry = pathInfo->parent;
+
+    // if root return 1
+    if (pathInfo->index == -1 || pathInfo->lastElement == NULL) {
+        free(pathInfo);  
+        return 1;  
+    }
+
+    DirEntry *lastElement = &(entry[pathInfo->index]);  // Get the last element in the path
+
+    int isDirectory = isDir(lastElement);  // Check if it's a directory
+
+    free(pathInfo);  // Free allocated memory for path information
+    return isDirectory;  // Return 1 if it's a directory, 0 if not
+
+};	
+
+int fs_isFile(char * pathname){
+    ppInfo * pathInfo = malloc(sizeof(ppInfo));
+
+    int returnVal = parsePath(pathname, pathInfo);
+
+    if (returnVal != 0){
+        free(pathInfo);
+        return -1;
+    }
+
+    DirEntry * entry = pathInfo->parent;
+
+    // if root return 1
+    if (pathInfo->index == -1 || pathInfo->lastElement == NULL) {
+        free(pathInfo);  
+        return 0;  
+    }
+
+    DirEntry *lastElement = &(entry[pathInfo->index]);  // Get the last element in the path
+
+    int isDirectory = isDir(lastElement);  // Check if it's a directory
+
+    free(pathInfo);  // Free allocated memory for path information
+    return !isDirectory;  // Return 1 if it's a directory, 0 if not
 
 };	
