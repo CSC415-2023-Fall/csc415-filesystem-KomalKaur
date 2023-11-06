@@ -48,8 +48,10 @@ int main (char * path, ppinfo * ppi) {
     }
     ppi->parent = startPath;
 
+    //handling case 
     if(token1 == NULL){
         if(strcmp(path, "/") == 0){ // valid path but its rootdir
+            ppi->parent = ppi->parent;
             ppi->index = -1; // there is no last element
             ppi->lastElement = NULL;
             ppi->pathValid = 0;
@@ -57,8 +59,17 @@ int main (char * path, ppinfo * ppi) {
         }
         return -1; // if its an empty string than return -1 idiot user
     }
+
+
     while(token1 != NULL){
-        
+        ppi -> index = findEntryInDir(ppi -> parent, token1);
+        char * token2 = strtok_r(NULL, "/", &saveptr);
+        if(token2 == NULL){ // meaning the last reading in was the last element
+            ppi -> parent = parent;
+            ppi -> lastElement = strdup(token1);
+            ppi -> index = index;
+            return 0;
+        }
     }
 
 
@@ -66,6 +77,17 @@ int main (char * path, ppinfo * ppi) {
 
 
 
+
+
+    return 0;
+}
+
+// hey ill have a pointer to an array of directory entries, 
+
+int findEntryInDir(DirEntry parent, char * token1){
+    //take the size and divide it by the size of the directory entry
+    //go through directory entry 0 - n looking for a dir entry with a name of (token1)
+    // if it doesnt find it return -1;
 
 
     return 0;
