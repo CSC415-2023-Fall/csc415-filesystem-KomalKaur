@@ -91,6 +91,17 @@ int fs_stat(const char *path, struct fs_stat *buf)
         return -1;
     }
 
+    printf("INDEX: %d", pathInfo->index);
+    DirEntry * entry = malloc(sizeof(DirEntry));
+    
+    if (pathInfo->index == -1 || pathInfo->lastElement == NULL){
+        
+        entry = rootDir;
+        buf->st_size = 512;
+        return 0;
+    }
 
-    return s;
+    free(pathInfo);
+    free(entry);
+    return 0;
 }
