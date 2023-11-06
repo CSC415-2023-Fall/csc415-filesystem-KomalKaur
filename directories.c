@@ -72,8 +72,6 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     directoryEntries[0].lastAccessed = t;
     directoryEntries[0].lastModified = t;
     directoryEntries[0].extentTable = allocateBlocks(rootDirSizeBlocks, rootDirSizeBlocks);
-    rootDir = & directoryEntries[0];
-    cwd = rootDir;
 
     // return start block of where directory entries start on disk
     int startBlock = directoryEntries[0].extentTable->start;
@@ -88,6 +86,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     else if (parent == NULL)
     {
         firstEntryPtr = &directoryEntries[0];
+        rootDir = firstEntryPtr;
 
         // Copy details for the ".." directory entry (parent directory)
         strcpy(directoryEntries[1].fileName, "..");
@@ -97,9 +96,10 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].lastAccessed = firstEntryPtr->lastAccessed;
         directoryEntries[1].lastModified = firstEntryPtr->lastModified;
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
+
+        cwd = rootDir;
     }
 
-    
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
     free(directoryEntries);
@@ -173,11 +173,6 @@ int parsePath(char *pathname, ppInfo *ppi)
         parent = temp;
         token1 = token2;
     }
-
-      printf("Parsing successful!\n");
-        printf("Parent directory: %p\n", (void*)ppi->parent);
-        printf("Index: %d\n", ppi->index);
-        printf("Last Element: %s\n", ppi->lastElement);
 
     free(startPath);
     return 0;
