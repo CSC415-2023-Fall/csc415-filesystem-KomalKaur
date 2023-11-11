@@ -38,6 +38,7 @@ typedef struct {
     time_t lastAccessed;
     time_t timeCreated;
     char isDirectory;
+    mode_t permissions;
 } DirEntry;
 
 typedef struct ppInfo {
@@ -54,5 +55,7 @@ int findEntryInDir(DirEntry *directory, char *entryName);
 DirEntry *LoadDir(DirEntry *entry);
 int isDir(DirEntry *entry);
 int findEmptySpotInDir(DirEntry *);
+int isDirEmtpy(DirEntry *);
+
 
 #endif

@@ -19,6 +19,7 @@
  **************************************************************/
 
 #include "directories.h"
+uint64_t globalBlockSize = 0;  
 
 DirEntry *rootDir;
 DirEntry *cwd;
@@ -31,6 +32,8 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         printf("Error: Invalid number of initial directory entries.\n");
         return -1;
     }
+
+    globalBlockSize = blockSize;
 
     // calculate size of directory in both blocks and bytes
     int rootDirSizeBytes = initialDirEntries * sizeof(DirEntry);
@@ -102,7 +105,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
-    free(directoryEntries);
+    // free(directoryEntries);
 
     return startBlock; // Return start block of directory entries
 }
@@ -257,18 +260,63 @@ DirEntry *LoadDir(DirEntry *entry) {
     return directoryStructure;
 }
 
-// Returns the index of an empty spot in Dir else returns -1
+/// @brief Finds an empty spot in the passed dirEntry
+/// @param directory 
+/// @return returns the first index in the dir that is empty
 int findEmptySpotInDir(DirEntry *directory){
 
+    if(directory == NULL){
+        return -1;
+    }
+    
     int numEntries = directory->size / sizeof(DirEntry); // find the size of dir
 
     // loop through to find an empty spot
     for(int i = 0; i < numEntries; i++){
-        if(directory[i].fileName == "\0"){
+        if(strcmp(directory[i].fileName, "") == 0){
             return i;
         }
     }
-
     //if none found return -1
     return -1;
+}
+
+/// @brief Function just to check if the dir is empty for rmdir. Acts as a boolean
+/// @param directory
+/// @return Returns 0 if empty, 1 if not 
+int isDirEmtpy(DirEntry *directory){
+
+    if(directory == NULL){
+        return -1;
+    }
+
+    int numEntries = directory->size / sizeof(DirEntry);
+
+    for(int i = 0; i < numEntries; i++){
+        if(strcmp(directory[i].fileName, "") != 0){
+            return 0; // not empty
+        }
+    }
+
+    return 1; // empty
+}
+
+/// @brief Deletes the dirEntry by setting all of its values to initial values
+/// @param directory 
+/// @return Returns 0 if successful returns 1 if unsuccessful
+int deleteDirEntry(DirEntry *directory){
+    if(directory == NULL){
+        return -1;
+    }
+
+    directory->fileName[0] = '\0';
+    directory->size = 0;
+    directory->extentTable = NULL;
+    directory->lastModified = 0;
+    directory->lastAccessed = 0;
+    directory->timeCreated = 0;
+    directory->isDirectory = 0;
+
+    //series of checks to make sure the dir is now gone?
+    return 0;
 }

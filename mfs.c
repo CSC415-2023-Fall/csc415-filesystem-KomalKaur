@@ -16,25 +16,29 @@
 #include "mfs.h"
 
 int fs_mkdir(const char *pathname, mode_t mode)
-{
+{   
     ppInfo *pathInfo = malloc(sizeof(ppInfo));
 
+    // checking memalloc for pathInfo
     if (pathInfo == NULL){
         printf("Failed allocation");
         return -1;
     }
 
+    // user wrong input
     if (parsePath(pathname, pathInfo) < 0) { // if parsepath returns anything less than 0 
         free(pathInfo);
         return -1;
     }
 
-    if (!isDir(pathInfo->parent)) { // if the parent of the last element isn't a directory
+    // user trying to make a dir in a file
+    if (!isDir(pathInfo->parent)) {
         printf("Parent directory does not exist or is not a directory.\n");
         free(pathInfo);
         return -1;
     }
 
+    // user trying to make a dir that alraeady exists
     int lastIndex = findEntryInDir(pathInfo->parent, pathInfo->lastElement); // checking that dir
     if (lastIndex != -1) {
         printf("Directory '%s' already exists!!!!\n", pathInfo->lastElement);
@@ -42,15 +46,15 @@ int fs_mkdir(const char *pathname, mode_t mode)
         return -1;
     }
 
-    // Create a new directory entry for the last element
+
+    // finding a spot for the new dir in the parent dir
     int emptyIndex = findEmptySpotInDir(pathInfo->parent);
     if (emptyIndex == -1) {
         printf("Parent directory is full!!!\n");
         free(pathInfo);
         return -1;
     }
-
-    // create the new dir
+    // create the new dir entry
     int numEntries = pathInfo->parent->size / sizeof(DirEntry);
     DirEntry *newDir = &(pathInfo->parent[emptyIndex]); 
     strcpy(pathInfo->parent[emptyIndex].fileName, pathInfo->lastElement);
@@ -60,24 +64,13 @@ int fs_mkdir(const char *pathname, mode_t mode)
     pathInfo->parent[emptyIndex].timeCreated = time(NULL);
     pathInfo->parent[emptyIndex].lastAccessed = time(NULL);
     pathInfo->parent[emptyIndex].isDirectory = 1;
+    pathInfo->parent[emptyIndex].permissions = mode; // i guess we had to have a permissions attribute to dirEntry
 
-    //initialize the new dir skip 0 since that contains the intiial
-    for(int i = 1; i < numEntries; i ++){
-        newDir[i].size = 0;
-        newDir[i].extentTable = NULL;
-        newDir[i].fileName[0] = '\0';
-        newDir[i].lastAccessed = 0;
-        newDir[i].lastModified = 0;
-        newDir[i].timeCreated = 0;
-        newDir[i].isDirectory = 0;
-    }
-
-    free(pathInfo);
-
+    // initializing the new directory
+    initDirectory(newDir, globalBlockSize , pathInfo->parent);
 
     return 0;
 }
-
 
 
 int fs_isDir(char *pathname)
@@ -166,3 +159,67 @@ int fs_stat(const char *path, struct fs_stat *buf)
     free(entry);
     return 0;
 }
+
+// just watching buffer size
+char *fs_getcwd(char *pathname, size_t size) 
+{
+    if (getcwd(pathname, size) == NULL) {
+        perror("getcwd");
+        return NULL;
+    }
+    return pathname;
+}
+
+int fs_setcwd(char *pathname)
+{
+    // need this for parsePath call
+    ppInfo *pathInfo = malloc(sizeof(ppInfo));
+
+    // parsePath sets the CWD thanks to collin
+    int result = parsePath(pathname, pathInfo);
+
+    // check what parsepath returned
+    if (result != 0) {
+        free(pathInfo);  
+        return -1;     
+    }
+
+    free(pathInfo);  
+
+    return 0;  // Indicate success
+}
+
+int fs_rmdir(const char *pathname){
+
+    ppInfo *pathInfo = malloc(sizeof(ppInfo));
+
+    if(parsePath(pathname, pathInfo) == -2){
+        printf("\nIts not a dir!!!");
+        return -1;
+    }
+
+    if(isDirEmtpy){
+        DirEntry * entry = &(pathInfo->parent);
+        int indexToRM = findEntryInDir(pathInfo->parent, pathInfo->lastElement);
+        int result = deleteDirEntry(entry[indexToRM]);
+        if(result == 0){
+        printf("\n dir removed!");
+        return 0;
+        }else{
+            printf("\n SOMETHING WENT COMPLETELY AND UTTERLY WRONG!");
+            return -1;
+        }
+    }
+
+}
+
+int fs_delete(char* filename){
+
+    ppInfo *pathInfo = malloc(sizeof(ppInfo));
+
+    int indexOfFile = findEntryInDir(pathInfo, filename);
+
+    
+}
+
+
