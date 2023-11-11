@@ -29,6 +29,7 @@
 #include "directories.h"
 #include "mfs.c"
 
+
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
 	struct vcb *tempVCB = (struct vcb *)malloc(blockSize);
@@ -43,15 +44,13 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 	// Call the fs_stat function passing the root directory
 	int returnVal = fs_stat("/", fileStats);
-
-	printf("\nTESTING TESTING \n");
-	printf("is File: %d\n", fs_isFile("/"));
-	printf("is Dir : %d\n", fs_isDir("/"));
-	printf("Stats  : %d\n", returnVal);
-	printf("Stats  : %ld\n", fileStats->st_size);
-
-	// Free the allocated memory for fileStats when done using it
+	// printf("\nTESTING TESTING \n");
+	// printf("is File: %d\n", fs_isFile("/"));
+	// printVCBinf(tempVCB);
+	// printDirEntry();
+	// // Free the allocated memory for fileStats when done using it
 	free(fileStats);
+	initVCB(numberOfBlocks, blockSize);
 
 	if (tempVCB->Signature == SIGNATURE)
 	{			  // checking if signature matches=

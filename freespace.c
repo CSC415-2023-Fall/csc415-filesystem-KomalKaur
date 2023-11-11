@@ -163,6 +163,34 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     return extentTable;
 }
 
+int free_blocks (extent * extentTable){
+    if (extentTable == NULL){
+        return -1;
+    }
+
+    int i = 0;
+
+    while (extentTable[i].start != 0 || extentTable->count != 0){
+        int startBlock = extentTable[i].start;
+        int endBlock = startBlock + extentTable[i].start;
+
+        for (int j = startBlock; j < endBlock; j++){
+            clearBit(j);
+        }
+    
+        i++;
+    }
+
+    int blocksWritten = LBAwrite(freeSpaceMap, 5, 1);
+
+    if (blocksWritten != 1) {
+        fprintf(stderr, "Error writing free space map to disk\n");
+        return -1;
+    }
+
+    return 0;
+}
+
 // helper function to set bits to used
 void setBit(int n)
 {
@@ -189,6 +217,8 @@ int checkBit(int n)
     return (freeSpaceMap[byteIndex] & (1 << (7 - bitIndex))) != 0;
 }
 
+
+// ./Hexdump/hexdump.linuxM1 SampleVolume --start 64 --count 10
 // debug function to print
 void printBitMap()
 {

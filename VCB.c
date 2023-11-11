@@ -33,7 +33,6 @@ int initVCB(uint64_t numberOfBlocks, uint64_t blockSize){
     vcbMain-> locRootDir = initDirectory(10, blockSize, NULL);
 
     if(LBAwrite(vcbMain, 1, 0)){
-		printVCBinf(vcbMain);
 		free(vcbMain);
         return 0;
     }
@@ -49,4 +48,11 @@ void printVCBinf(struct vcb* t1){
 	printf("loc RootDir: %i\n", t1->locRootDir);
 	printf("block size from VCB: %ld\n", t1->blockSize);
 	printf("Signature VCB: %lld\n", t1->Signature);
+}
+
+void printDirEntry(){
+	int rootDirSizeBytes = 10 * sizeof(DirEntry);
+    int rootDirSizeBlocks = (rootDirSizeBytes + (512 - 1) / 512);
+
+	printf("rootDir: %ld", rootDir->lastAccessed);
 }

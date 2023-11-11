@@ -41,6 +41,7 @@ typedef struct {
     mode_t permissions;
 } DirEntry;
 
+
 typedef struct ppInfo {
 	DirEntry * parent;
 	int index;

@@ -19,7 +19,7 @@
  **************************************************************/
 
 #include "directories.h"
-uint64_t globalBlockSize = 0;  
+ 
 
 DirEntry *rootDir;
 DirEntry *cwd;
@@ -33,15 +33,17 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         return -1;
     }
 
-    globalBlockSize = blockSize;
+    int sizeOfDE = sizeof(DirEntry);
 
-    // calculate size of directory in both blocks and bytes
-    int rootDirSizeBytes = initialDirEntries * sizeof(DirEntry);
-    int rootDirSizeBlocks = (rootDirSizeBytes + (blockSize - 1) / blockSize);
-
-    rootDirSizeBytes = rootDirSizeBlocks * blockSize;
+    int rootDirSizeBytes = initialDirEntries * sizeOfDE;
+    int rootDirSizeBlocks = (initialDirEntries * sizeOfDE + blockSize - 1) / blockSize;
 
     int actualDirEntries = rootDirSizeBytes / sizeof(DirEntry);
+
+    printf("\nrootDirSizeBytes: %d\n", rootDirSizeBytes);
+    printf("rootDirSizeBlocks: %d\n", rootDirSizeBlocks);
+    printf("Size of DE: %d \n",  sizeof(DirEntry));
+    printf("ACTUAL: %d\n", actualDirEntries);
 
     // allocate memory for the directory entries
     DirEntry *directoryEntries = malloc(actualDirEntries * sizeof(DirEntry));
@@ -85,6 +87,17 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     if (parent != NULL)
     {
         firstEntryPtr = parent;
+        
+        strcpy(directoryEntries[1].fileName, "..");
+        directoryEntries[1].size = firstEntryPtr->size;
+        directoryEntries[1].isDirectory = firstEntryPtr->isDirectory;
+        directoryEntries[1].timeCreated = firstEntryPtr->timeCreated;
+        directoryEntries[1].lastAccessed = firstEntryPtr->lastAccessed;
+        directoryEntries[1].lastModified = firstEntryPtr->lastModified;
+        directoryEntries[1].extentTable = firstEntryPtr->extentTable;
+
+        cwd = parent;
+
     }
     else if (parent == NULL)
     {
@@ -105,7 +118,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
-    // free(directoryEntries);
+
 
     return startBlock; // Return start block of directory entries
 }
@@ -228,6 +241,36 @@ int findEntryInDir(DirEntry *directory, char *entryName) {
     return -1; // Return -1 if the entry is not found in the directory
 }
 
+int findNextAvailableEntryInDir(DirEntry *directory) {
+
+      ppInfo *pathInfo = malloc(sizeof(ppInfo));
+
+    int returnVal = parsePath("/", pathInfo);
+
+    if (returnVal != 0)
+    {
+        free(pathInfo);
+        printf("HERE");
+        return -1;
+    }
+
+    DirEntry *entry = pathInfo->parent;
+
+    if (entry == NULL) {
+        printf("NO HERE");
+        return -1; // Error code for invalid input
+    }
+
+    int numEntries = entry->size / sizeof(DirEntry);
+
+    for (int i = 0; i < numEntries; i++) {
+        if (entry[i].fileName[0] == '\0') {
+            return i; // Return the index of the first available entry
+        }
+    }
+
+    return -1; // Return -1 if no available entry is found in the directory
+}
 
 DirEntry *LoadDir(DirEntry *entry) {
     if (entry == NULL || entry->isDirectory == 0) {
@@ -260,26 +303,26 @@ DirEntry *LoadDir(DirEntry *entry) {
     return directoryStructure;
 }
 
-/// @brief Finds an empty spot in the passed dirEntry
-/// @param directory 
-/// @return returns the first index in the dir that is empty
-int findEmptySpotInDir(DirEntry *directory){
+// /// @brief Finds an empty spot in the passed dirEntry
+// /// @param directory 
+// /// @return returns the first index in the dir that is empty
+// int findEmptySpotInDir(DirEntry *directory){
 
-    if(directory == NULL){
-        return -1;
-    }
+//     if(directory == NULL || entryName == NULL){
+//         return -1;
+//     }
     
-    int numEntries = directory->size / sizeof(DirEntry); // find the size of dir
+//     int numEntries = directory->size / sizeof(DirEntry); // find the size of dir
 
-    // loop through to find an empty spot
-    for(int i = 0; i < numEntries; i++){
-        if(strcmp(directory[i].fileName, "") == 0){
-            return i;
-        }
-    }
-    //if none found return -1
-    return -1;
-}
+//     // loop through to find an empty spot
+//     for(int i = 0; i < numEntries; i++){
+//         if(strcmp(directory[i].fileName, "") == 0){
+//             return i;
+//         }
+//     }
+//     //if none found return -1
+//     return -1;
+// }
 
 /// @brief Function just to check if the dir is empty for rmdir. Acts as a boolean
 /// @param directory
