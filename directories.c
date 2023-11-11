@@ -256,3 +256,19 @@ DirEntry *LoadDir(DirEntry *entry) {
     // Returning the directory structure
     return directoryStructure;
 }
+
+// Returns the index of an empty spot in Dir else returns -1
+int findEmptySpotInDir(DirEntry *directory){
+
+    int numEntries = directory->size / sizeof(DirEntry); // find the size of dir
+
+    // loop through to find an empty spot
+    for(int i = 0; i < numEntries; i++){
+        if(directory[i].fileName == "\0"){
+            return i;
+        }
+    }
+
+    //if none found return -1
+    return -1;
+}

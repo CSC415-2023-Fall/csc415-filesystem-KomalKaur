@@ -31,8 +31,6 @@ typedef struct extent {
     int count;
 } extent, * pextent;
 
-
-
 // called to when volume is initialized. returns block number
 // of where map starts
 int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize);

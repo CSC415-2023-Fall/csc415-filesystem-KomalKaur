@@ -53,5 +53,6 @@ int parsePath (char * pathname, ppInfo * ppi);
 int findEntryInDir(DirEntry *directory, char *entryName);
 DirEntry *LoadDir(DirEntry *entry);
 int isDir(DirEntry *entry);
+int findEmptySpotInDir(DirEntry *);
 
 #endif
