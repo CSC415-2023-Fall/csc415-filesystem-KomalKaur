@@ -51,8 +51,5 @@ void printVCBinf(struct vcb* t1){
 }
 
 void printDirEntry(){
-	int rootDirSizeBytes = 10 * sizeof(DirEntry);
-    int rootDirSizeBlocks = (rootDirSizeBytes + (512 - 1) / 512);
-
-	printf("rootDir: %ld", rootDir->lastAccessed);
+	printf("FILENAME: %s\n", rootDir[1].fileName);
 }

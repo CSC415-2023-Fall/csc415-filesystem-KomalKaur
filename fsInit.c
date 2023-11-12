@@ -32,26 +32,14 @@
 
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
+	printf("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
+
 	struct vcb *tempVCB = (struct vcb *)malloc(blockSize);
 
 	LBAread(tempVCB, 1, 0);
 
-	struct fs_stat *fileStats = (struct fs_stat *)malloc(sizeof(struct fs_stat));
-	if (fileStats == NULL)
-	{
-		printf("Error: Memory allocation failed for fileStats.\n");
-		return -1; // Or handle the error accordingly
-	}
-	// Call the fs_stat function passing the root directory
-	int returnVal = fs_stat("/", fileStats);
-	// printf("\nTESTING TESTING \n");
-	// printf("is File: %d\n", fs_isFile("/"));
-	// printVCBinf(tempVCB);
-	// printDirEntry();
-	// // Free the allocated memory for fileStats when done using it
-	free(fileStats);
-	initVCB(numberOfBlocks, blockSize);
-
+	loadRootDir();
+	
 	if (tempVCB->Signature == SIGNATURE)
 	{			  // checking if signature matches=
 		return 0; // volume already is initalized
@@ -59,15 +47,15 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	else
 	{
 		initVCB(numberOfBlocks, blockSize);
-	}
+	}	
 
-	printf("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
-	/* TODO: Add any code you need to initialize your file system. */
+	free(tempVCB);
 
 	return 0;
 }
 
 void exitFileSystem()
 {
+	free(rootDir);
 	printf("System exiting\n");
 }

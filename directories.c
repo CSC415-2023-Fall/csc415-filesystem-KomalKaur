@@ -21,7 +21,7 @@
 #include "directories.h"
  
 
-DirEntry *rootDir;
+DirEntry * rootDir;
 DirEntry *cwd;
 
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
@@ -40,10 +40,10 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
     int actualDirEntries = rootDirSizeBytes / sizeof(DirEntry);
 
-    printf("\nrootDirSizeBytes: %d\n", rootDirSizeBytes);
-    printf("rootDirSizeBlocks: %d\n", rootDirSizeBlocks);
-    printf("Size of DE: %d \n",  sizeof(DirEntry));
-    printf("ACTUAL: %d\n", actualDirEntries);
+    // printf("\nrootDirSizeBytes: %d\n", rootDirSizeBytes);
+    // printf("rootDirSizeBlocks: %d\n", rootDirSizeBlocks);
+    // printf("Size of DE: %d \n",  sizeof(DirEntry));
+    // printf("ACTUAL: %d\n", actualDirEntries);
 
     // allocate memory for the directory entries
     DirEntry *directoryEntries = malloc(actualDirEntries * sizeof(DirEntry));
@@ -96,13 +96,10 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].lastModified = firstEntryPtr->lastModified;
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
 
-        cwd = parent;
-
     }
     else if (parent == NULL)
     {
         firstEntryPtr = &directoryEntries[0];
-        rootDir = firstEntryPtr;
 
         // Copy details for the ".." directory entry (parent directory)
         strcpy(directoryEntries[1].fileName, "..");
@@ -112,8 +109,6 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].lastAccessed = firstEntryPtr->lastAccessed;
         directoryEntries[1].lastModified = firstEntryPtr->lastModified;
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
-
-        cwd = rootDir;
     }
 
     // write it to disk
@@ -121,6 +116,18 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
 
     return startBlock; // Return start block of directory entries
+}
+
+int loadRootDir(){
+    rootDir = (DirEntry * )malloc(sizeof(DirEntry));
+
+    if (rootDir == NULL){
+        return -1;
+    }
+	
+    LBAread(rootDir, 6, 6);
+
+    return 0;
 }
 
 int parsePath(char *pathname, ppInfo *ppi)
