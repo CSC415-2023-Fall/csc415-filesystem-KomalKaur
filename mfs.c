@@ -15,32 +15,71 @@
 
 #include "mfs.h"
 
-// int fs_mkdir(const char *pathname, mode_t mode){
-//     ppInfo * pathInfo = malloc(sizeof(ppInfo));
+int fs_mkdir(char *pathname, mode_t mode)
+{
+    ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
 
-//     int returnValue = parsePath(pathname, pathInfo);
+    int retVal = parsePath(pathname, pathInfo);
 
-//     DirEntry * parent = pathInfo -> parent;
-//     char newName = pathInfo -> lastElement;
+    if (retVal != 0)
+    {
+        printf("Parse path failed");
+        return -1;
+    }
 
-//     if (parent == NULL || !isDir(parent)){
-//         free(pathInfo);
-//         return -1;
-//     }
+    if (pathInfo->index != -1)
+    {
+        printf("Directory Already Exists!!");
+        free(pathInfo);
+        return -1;
+    }
 
-//     if (newName == NULL || stlen(newName) == 0){
-//         free(pathInfo);
-//         return -1;
-//     }
+    DirEntry *parent = pathInfo->parent;
 
-//     if (findEntryInDir(parent, newName) != -1){
-//         free(pathInfo);
-//         return -1;
-//     }
+    int size = parent->size;
 
-//     int startBlock = initDirectory(20, 512, parent);
+    printf("SIZE: %d\n", size);
 
-// }
+    int index = findNextAvailableEntryInDir(parent);
+
+    printf("INDEX: %d\n", index);
+
+    if (index == -1)
+    {
+        printf("Error: Parent directory is full.\n");
+        free(pathInfo);
+        return -1;
+    }
+
+    DirEntry *dot = malloc(sizeof(DirEntry));
+
+    int startBlock = initDirectory(20, 512, parent);
+
+    // if (startBlock == -1)
+    // {
+    //     printf("Error in initDirectory()");
+    //     free(pathInfo);
+    //     //free(dot);
+    //     return -1;
+    // }
+
+    // uint64_t blocksRead = LBAread(dot, 1, startBlock);
+
+    // strcpy((parent[index]).fileName, pathInfo->lastElement);
+    // parent[index].size = dot->size;
+    // parent[index].extentTable = dot->extentTable;
+    // parent[index].isDirectory = dot->isDirectory;
+    // parent[index].lastAccessed = dot->lastAccessed;
+    // parent[index].lastModified = dot->lastModified;
+    // parent[index].timeCreated = dot->timeCreated;
+
+    printf("FILENAME: %s", parent[index].fileName);
+    free(pathInfo);
+    free(dot);
+
+    return 0;
+}
+
 
 int fs_isDir(char *pathname)
 {
@@ -104,7 +143,7 @@ int fs_stat(const char *path, struct fs_stat *buf)
 {
     ppInfo *pathInfo = malloc(sizeof(ppInfo));
 
-    char * pathname = strdup(path);
+    char *pathname = strdup(path);
 
     int returnVal = parsePath(pathname, pathInfo);
 
@@ -115,10 +154,11 @@ int fs_stat(const char *path, struct fs_stat *buf)
     }
 
     printf("INDEX: %d", pathInfo->index);
-    DirEntry * entry = malloc(sizeof(DirEntry));
-    
-    if (pathInfo->index == -1 || pathInfo->lastElement == NULL){
-        
+    DirEntry *entry = malloc(sizeof(DirEntry));
+
+    if (pathInfo->index == -1 || pathInfo->lastElement == NULL)
+    {
+
         entry = rootDir;
         buf->st_size = 512;
         return 0;
@@ -130,9 +170,10 @@ int fs_stat(const char *path, struct fs_stat *buf)
 }
 
 // just watching buffer size
-char *fs_getcwd(char *pathname, size_t size) 
+char *fs_getcwd(char *pathname, size_t size)
 {
-    if (getcwd(pathname, size) == NULL) {
+    if (getcwd(pathname, size) == NULL)
+    {
         perror("getcwd");
         return NULL;
     }
@@ -148,14 +189,15 @@ int fs_setcwd(char *pathname)
     int result = parsePath(pathname, pathInfo);
 
     // check what parsepath returned
-    if (result != 0) {
-        free(pathInfo);  
-        return -1;     
+    if (result != 0)
+    {
+        free(pathInfo);
+        return -1;
     }
 
-    free(pathInfo);  
+    free(pathInfo);
 
-    return 0;  // Indicate success
+    return 0; // Indicate success
 }
 
 // int fs_rmdir(const char *pathname){
@@ -181,6 +223,3 @@ int fs_setcwd(char *pathname)
 //     }
 
 // }
-
-
-

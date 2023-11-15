@@ -32,13 +32,16 @@
 
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
-	printf("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
+	printf("Initializing File System with %ld blocks with a block size of %ld\n\n", numberOfBlocks, blockSize);
 
 	struct vcb *tempVCB = (struct vcb *)malloc(blockSize);
 
 	LBAread(tempVCB, 1, 0);
 
 	loadRootDir();
+	loadCWD();
+
+	fs_mkdir("/Users", 1);
 	
 	if (tempVCB->Signature == SIGNATURE)
 	{			  // checking if signature matches=

@@ -19,9 +19,9 @@
  **************************************************************/
 
 #include "directories.h"
- 
+#include <stdlib.h>
 
-DirEntry * rootDir;
+DirEntry *rootDir;
 DirEntry *cwd;
 
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
@@ -69,7 +69,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
     time_t t = time(NULL);
 
-    // create root directory
+    // create new directory
     strcpy(directoryEntries[0].fileName, ".");
     directoryEntries[0].size = actualDirEntries * sizeof(DirEntry);
     directoryEntries[0].isDirectory = 1;
@@ -87,7 +87,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     if (parent != NULL)
     {
         firstEntryPtr = parent;
-        
+
         strcpy(directoryEntries[1].fileName, "..");
         directoryEntries[1].size = firstEntryPtr->size;
         directoryEntries[1].isDirectory = firstEntryPtr->isDirectory;
@@ -95,7 +95,6 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].lastAccessed = firstEntryPtr->lastAccessed;
         directoryEntries[1].lastModified = firstEntryPtr->lastModified;
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
-
     }
     else if (parent == NULL)
     {
@@ -113,19 +112,27 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
-
-
     return startBlock; // Return start block of directory entries
 }
 
-int loadRootDir(){
-    rootDir = (DirEntry * )malloc(sizeof(DirEntry));
 
-    if (rootDir == NULL){
+int loadRootDir()
+{
+    int rootDirSize = 6 * 512;
+    rootDir = (DirEntry *)malloc(rootDirSize);
+
+    if (rootDir == NULL)
+    {
         return -1;
     }
-	
+
     LBAread(rootDir, 6, 6);
+    return 0;
+}
+
+int loadCWD()
+{
+    cwd = rootDir;
 
     return 0;
 }
@@ -137,8 +144,8 @@ int parsePath(char *pathname, ppInfo *ppi)
         return -1;
     }
 
-    DirEntry * startPath = malloc(sizeof(DirEntry));
-    DirEntry * parent = malloc(sizeof(DirEntry));
+    DirEntry *startPath = malloc(sizeof(DirEntry));
+    DirEntry *parent = malloc(sizeof(DirEntry));
 
     if (pathname[0] == '/')
     {
@@ -151,13 +158,15 @@ int parsePath(char *pathname, ppInfo *ppi)
 
     parent = startPath;
 
-    char* token1;
-    char * saveptr = NULL;
+    char *token1;
+    char *saveptr = NULL;
 
     token1 = strtok_r(pathname, "/", &saveptr);
 
-    if (token1 == NULL){
-        if (strcmp(pathname,"/") == 0){
+    if (token1 == NULL)
+    {
+        if (strcmp(pathname, "/") == 0)
+        {
             ppi->parent = parent;
             ppi->index = -1;
             ppi->lastElement = NULL;
@@ -166,12 +175,15 @@ int parsePath(char *pathname, ppInfo *ppi)
 
         return -1;
     }
-    
-    char * token2;
-    while (token1 != NULL){
-        int index = findEntryInDir(parent, token1);  // look for name in directory entries one by one
-        token2 = strtok_r(NULL,"/", &saveptr);
-        if (token2 == NULL){
+
+    char *token2;
+    while (token1 != NULL)
+    {
+        // look for name in directory entries one by one
+        int index = findEntryInDir(parent, token1);
+        token2 = strtok_r(NULL, "/", &saveptr);
+        if (token2 == NULL)
+        {
             ppi->parent = parent;
             ppi->lastElement = strdup(token1);
             ppi->index = index;
@@ -179,20 +191,23 @@ int parsePath(char *pathname, ppInfo *ppi)
             return 0;
         }
 
-        if (index == -1){
+        if (index == -1)
+        {
             return -2;
         }
 
-        if (!isDir(&parent[index])){
+        if (!isDir(&parent[index]))
+        {
             return -2;
         }
 
-        DirEntry * temp = LoadDir (&(parent[index]));
+        DirEntry *temp = LoadDir(&(parent[index]));
 
-        if (parent != startPath){
+        if (parent != startPath)
+        {
             free(parent);
         }
-        
+
         parent = temp;
         token1 = token2;
     }
@@ -201,46 +216,50 @@ int parsePath(char *pathname, ppInfo *ppi)
     return 0;
 }
 
-void testParsePath() {
-    ppInfo *testPathInfo = malloc(sizeof(ppInfo)); // Allocate memory for path information
+void testParsePath(char * pathname)
+{
+    ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
 
-    // Test with the pathname "/"
-    char pathname[] = "/";
-    int result = parsePath(pathname, testPathInfo);
+    int retVal = parsePath(pathname, pathInfo);
 
-    if (result == 0) {
-        // Parsing successful, print the extracted information
-        printf("Parsing successful!\n");
-        printf("Parent directory: %p\n", (void*)(testPathInfo->parent));
-        printf("Index: %d\n", testPathInfo->index);
-        printf("Last Element: %s\n", testPathInfo->lastElement);
-    } else {
-        printf("Error while parsing the path.\n");
+    if (retVal != 0)
+    {
+        printf("Parse path failed");
     }
 
-    free(testPathInfo); // Free the allocated memory for path information
+    DirEntry *parent = malloc(sizeof(DirEntry));
+
+    parent = pathInfo->parent;
+
+    printf("Parent: %s\n", parent->fileName);
+
+    printf("INDEX: %d\n", pathInfo->index);
+    printf("Last Element: %s\n", pathInfo->lastElement);
 }
 
-
-int isDir(DirEntry *entry) {
-    if (entry == NULL) {
+int isDir(DirEntry *entry)
+{
+    if (entry == NULL)
+    {
         return -1; // Error code for invalid input
     }
 
     return entry->isDirectory; // Return directory status (1 for directory, 0 for not a directory)
 }
 
-
-
-int findEntryInDir(DirEntry *directory, char *entryName) {
-    if (directory == NULL || entryName == NULL) {
+int findEntryInDir(DirEntry *directory, char *entryName)
+{
+    if (directory == NULL || entryName == NULL)
+    {
         return -1; // Error code for invalid inputs
     }
 
     int numEntries = directory->size / sizeof(DirEntry);
 
-    for (int i = 0; i < numEntries; i++) {
-        if (strcmp(directory[i].fileName, entryName) == 0) {
+    for (int i = 0; i < numEntries; i++)
+    {
+        if (strcmp(directory[i].fileName, entryName) == 0)
+        {
             return i; // Return the index of the found directory entry
         }
     }
@@ -248,9 +267,10 @@ int findEntryInDir(DirEntry *directory, char *entryName) {
     return -1; // Return -1 if the entry is not found in the directory
 }
 
-int findNextAvailableEntryInDir(DirEntry *directory) {
+int findNextAvailableEntryInDir(DirEntry *directory)
+{
 
-      ppInfo *pathInfo = malloc(sizeof(ppInfo));
+    ppInfo *pathInfo = malloc(sizeof(ppInfo));
 
     int returnVal = parsePath("/", pathInfo);
 
@@ -263,15 +283,18 @@ int findNextAvailableEntryInDir(DirEntry *directory) {
 
     DirEntry *entry = pathInfo->parent;
 
-    if (entry == NULL) {
+    if (entry == NULL)
+    {
         printf("NO HERE");
         return -1; // Error code for invalid input
     }
 
     int numEntries = entry->size / sizeof(DirEntry);
 
-    for (int i = 0; i < numEntries; i++) {
-        if (entry[i].fileName[0] == '\0') {
+    for (int i = 0; i < numEntries; i++)
+    {
+        if (entry[i].fileName[0] == '\0')
+        {
             return i; // Return the index of the first available entry
         }
     }
@@ -279,15 +302,17 @@ int findNextAvailableEntryInDir(DirEntry *directory) {
     return -1; // Return -1 if no available entry is found in the directory
 }
 
-DirEntry *LoadDir(DirEntry *entry) {
-    if (entry == NULL || entry->isDirectory == 0) {
+DirEntry *LoadDir(DirEntry *entry)
+{
+    if (entry == NULL || entry->isDirectory == 0)
+    {
         return NULL; // Return NULL if the entry is not a valid directory
     }
 
     extent *dirExtent = entry->extentTable;
 
     // Calculate the number of blocks to read for the directory based on its extent information
-    uint64_t blockSize = 512;  
+    uint64_t blockSize = 512;
     uint64_t totalBlocksToRead = dirExtent->count;
     uint64_t startBlock = dirExtent->start;
 
@@ -301,7 +326,8 @@ DirEntry *LoadDir(DirEntry *entry) {
     uint64_t blocksRead = LBAread(directoryStructure, totalBlocksToRead, startBlock);
 
     // Perform error handling and return NULL in case of failure
-    if (blocksRead != totalBlocksToRead) {
+    if (blocksRead != totalBlocksToRead)
+    {
         free(directoryStructure); // Free allocated memory in case of failure
         return NULL;
     }
@@ -311,14 +337,14 @@ DirEntry *LoadDir(DirEntry *entry) {
 }
 
 // /// @brief Finds an empty spot in the passed dirEntry
-// /// @param directory 
+// /// @param directory
 // /// @return returns the first index in the dir that is empty
 // int findEmptySpotInDir(DirEntry *directory){
 
 //     if(directory == NULL || entryName == NULL){
 //         return -1;
 //     }
-    
+
 //     int numEntries = directory->size / sizeof(DirEntry); // find the size of dir
 
 //     // loop through to find an empty spot
@@ -333,17 +359,21 @@ DirEntry *LoadDir(DirEntry *entry) {
 
 /// @brief Function just to check if the dir is empty for rmdir. Acts as a boolean
 /// @param directory
-/// @return Returns 0 if empty, 1 if not 
-int isDirEmtpy(DirEntry *directory){
+/// @return Returns 0 if empty, 1 if not
+int isDirEmtpy(DirEntry *directory)
+{
 
-    if(directory == NULL){
+    if (directory == NULL)
+    {
         return -1;
     }
 
     int numEntries = directory->size / sizeof(DirEntry);
 
-    for(int i = 0; i < numEntries; i++){
-        if(strcmp(directory[i].fileName, "") != 0){
+    for (int i = 0; i < numEntries; i++)
+    {
+        if (strcmp(directory[i].fileName, "") != 0)
+        {
             return 0; // not empty
         }
     }
@@ -352,10 +382,12 @@ int isDirEmtpy(DirEntry *directory){
 }
 
 /// @brief Deletes the dirEntry by setting all of its values to initial values
-/// @param directory 
+/// @param directory
 /// @return Returns 0 if successful returns 1 if unsuccessful
-int deleteDirEntry(DirEntry *directory){
-    if(directory == NULL){
+int deleteDirEntry(DirEntry *directory)
+{
+    if (directory == NULL)
+    {
         return -1;
     }
 
@@ -367,6 +399,6 @@ int deleteDirEntry(DirEntry *directory){
     directory->timeCreated = 0;
     directory->isDirectory = 0;
 
-    //series of checks to make sure the dir is now gone?
+    // series of checks to make sure the dir is now gone?
     return 0;
 }

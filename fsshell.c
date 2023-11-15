@@ -751,10 +751,9 @@ int main (int argc, char * argv[])
 		if(strcmp("lowtest", argv[4]) == 0)
 			runFSLowTest();
 
-
 	using_history();
 	stifle_history(200);	//max history entries
-        printf ("|---------------------------------|\n");
+        printf ("\n|---------------------------------|\n");
         printf ("|------- Command ------|- Status -|\n");
 #if (CMDLS_ON == 1)
         printf ("| ls                   |    ON    |\n");
@@ -813,7 +812,7 @@ int main (int argc, char * argv[])
 #endif
         printf ("|---------------------------------|\n");
 
-	
+
 	while (1)
 		{
 		cmdin = readline("Prompt > ");

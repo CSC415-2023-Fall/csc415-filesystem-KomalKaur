@@ -19,6 +19,7 @@
 void printVCBinf(struct vcb* t1);
 
 int initVCB(uint64_t numberOfBlocks, uint64_t blockSize){
+	printf("FORMATTING");
     struct vcb* vcbMain = (struct vcb*)malloc(blockSize); // malloc a pointer to vcb
 	if(vcbMain == NULL){
 		perror("Failed to allocate mem for vcb pointer");
@@ -51,5 +52,7 @@ void printVCBinf(struct vcb* t1){
 }
 
 void printDirEntry(){
-	printf("FILENAME: %s\n", rootDir[1].fileName);
+	printf("FILENAME1: %s\n", rootDir[1].fileName);
+
+	printf("CWD FILENAME: %ld\n", cwd[0].size);
 }

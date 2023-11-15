@@ -57,8 +57,8 @@ typedef struct
 	} fdDir;
 
 // Key directory functions
-int fs_mkdir(const char *pathname, mode_t mode);
-int fs_rmdir(const char *pathname);
+int fs_mkdir(char *pathname, mode_t mode);
+int fs_rmdir(char *pathname);
 
 // Directory iteration functions
 fdDir * fs_opendir(const char *pathname);
