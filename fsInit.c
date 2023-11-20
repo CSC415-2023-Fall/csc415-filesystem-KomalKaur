@@ -29,7 +29,6 @@
 #include "directories.h"
 #include "mfs.c"
 
-
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
 	printf("Initializing File System with %ld blocks with a block size of %ld\n\n", numberOfBlocks, blockSize);
@@ -38,19 +37,20 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 	LBAread(tempVCB, 1, 0);
 
-	loadRootDir();
-	loadCWD();
-
-	fs_mkdir("/Users", 1);
-	
 	if (tempVCB->Signature == SIGNATURE)
-	{			  // checking if signature matches=
+	{
+		loadMap(numberOfBlocks, blockSize);
+		loadRootDir();
+		loadCWD();
+
+		fs_mkdir("/Users", 1);
+
 		return 0; // volume already is initalized
 	}
 	else
 	{
 		initVCB(numberOfBlocks, blockSize);
-	}	
+	}
 
 	free(tempVCB);
 

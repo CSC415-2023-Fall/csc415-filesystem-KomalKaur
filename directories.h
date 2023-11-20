@@ -57,6 +57,6 @@ DirEntry *LoadDir(DirEntry *entry);
 int isDir(DirEntry *entry);
 int findEmptySpotInDir(DirEntry *);
 int isDirEmtpy(DirEntry *);
-
+int setDot(DirEntry * entry);
 
 #endif

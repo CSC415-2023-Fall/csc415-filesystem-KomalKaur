@@ -1,27 +1,26 @@
 /**************************************************************
-* Class:  CSC-415-01 Fall 2023
-* Names: Collins Gichohi, Louis Houston, Komaldeep Kaur,
-* 			Raymond Liu, Aleia Natividad
-* Student IDs: 922440815, 922379442, 920198887, 916624142, 
-*				922439437
-* GitHub Name: gsnilloC, LouisHouston, komalkaaur, Airray117
-*				leileigoose
-* Group Name: The Strugglers
-* Project: Basic File System
-*
-* File: freespace.c
-*
-* Description: This file contains our free space manager and 
-* all the helper functions needed.
-*
-**************************************************************/
+ * Class:  CSC-415-01 Fall 2023
+ * Names: Collins Gichohi, Louis Houston, Komaldeep Kaur,
+ * 			Raymond Liu, Aleia Natividad
+ * Student IDs: 922440815, 922379442, 920198887, 916624142,
+ *				922439437
+ * GitHub Name: gsnilloC, LouisHouston, komalkaaur, Airray117
+ *				leileigoose
+ * Group Name: The Strugglers
+ * Project: Basic File System
+ *
+ * File: freespace.c
+ *
+ * Description: This file contains our free space manager and
+ * all the helper functions needed.
+ *
+ **************************************************************/
 
 #include "freespace.h"
 
-uint8_t *freeSpaceMap = NULL; 
+uint8_t *freeSpaceMap;
 uint64_t maxNumberOfBlocks;
 uint64_t bytesPerBlock;
-
 
 // initialize free space map with first blocks marked as used
 // if bit is set to 0 it is free, if bit is set to 1 it is taken
@@ -99,7 +98,6 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     while (blockCount < numBlocks)
     {
         int consecutiveFreeBlocks = 0;
-
         // check for consecutive free blocks to allocate extents with
         for (int i = startBlock; i < maxNumberOfBlocks; ++i)
         {
@@ -151,7 +149,7 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     }
 
     // Write the updated map to disk after block allocation
-    int blocksWritten = LBAwrite(freeSpaceMap, 5, 1); 
+    int blocksWritten = LBAwrite(freeSpaceMap, 5, 1);
 
     // debug
     // printf("# of extents: %d\n", extentIndex);
@@ -163,27 +161,45 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     return extentTable;
 }
 
-int free_blocks (extent * extentTable){
-    if (extentTable == NULL){
+int loadMap(uint64_t numberOfBlocks, uint64_t blockSize)
+{
+    int sizeOfMapBytes = (numberOfBlocks / 8) + 1;
+    int sizeOfMapBlocks = (sizeOfMapBytes + blockSize - 1) / blockSize;
+
+    // allocate bytes for map
+    freeSpaceMap = (uint8_t *)malloc(sizeOfMapBytes);
+
+
+    //LBAread(freeSpaceMap, sizeOfMapBlocks, 1);
+    return 0;
+}
+
+int free_blocks(extent *extentTable)
+{
+    if (extentTable == NULL)
+    {
         return -1;
     }
 
     int i = 0;
 
-    while (extentTable[i].start != 0 || extentTable->count != 0){
+    while (extentTable[i].start != 0 || extentTable->count != 0)
+    {
         int startBlock = extentTable[i].start;
         int endBlock = startBlock + extentTable[i].start;
 
-        for (int j = startBlock; j < endBlock; j++){
+        for (int j = startBlock; j < endBlock; j++)
+        {
             clearBit(j);
         }
-    
+
         i++;
     }
 
     int blocksWritten = LBAwrite(freeSpaceMap, 5, 1);
 
-    if (blocksWritten != 1) {
+    if (blocksWritten != 1)
+    {
         fprintf(stderr, "Error writing free space map to disk\n");
         return -1;
     }
@@ -217,12 +233,11 @@ int checkBit(int n)
     return (freeSpaceMap[byteIndex] & (1 << (7 - bitIndex))) != 0;
 }
 
-
 // ./Hexdump/hexdump.linuxM1 SampleVolume --start 64 --count 10
 // debug function to print
 void printBitMap()
 {
-    for (int i = 0; i < maxNumberOfBlocks; i++)
+    for (int i = 0; i < 20; i++)
     {
         if (i % 64 == 0 && i != 0)
         {

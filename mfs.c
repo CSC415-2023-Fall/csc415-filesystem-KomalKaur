@@ -42,7 +42,7 @@ int fs_mkdir(char *pathname, mode_t mode)
 
     int index = findNextAvailableEntryInDir(parent);
 
-    printf("INDEX: %d\n", index);
+    printf("INDEX: %d\n\n", index);
 
     if (index == -1)
     {

@@ -23,6 +23,7 @@
 
 DirEntry *rootDir;
 DirEntry *cwd;
+DirEntry *dot;
 
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 {
@@ -81,6 +82,8 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     // return start block of where directory entries start on disk
     int startBlock = directoryEntries[0].extentTable->start;
 
+    printBitMap();
+
     DirEntry *firstEntryPtr;
 
     // handle root directory case
@@ -112,9 +115,16 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
+
+    // TODO: check if this works
+    if (parent == NULL)
+    {
+        printf("FREED DIR ENTRIES");
+        free(directoryEntries);
+    }
+
     return startBlock; // Return start block of directory entries
 }
-
 
 int loadRootDir()
 {
@@ -216,7 +226,7 @@ int parsePath(char *pathname, ppInfo *ppi)
     return 0;
 }
 
-void testParsePath(char * pathname)
+void testParsePath(char *pathname)
 {
     ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
 
