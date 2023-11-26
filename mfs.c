@@ -223,3 +223,67 @@ int fs_setcwd(char *pathname)
 //     }
 
 // }
+
+/*
+Returns fdDir --> 
+    unsigned short  d_reclen    length of this record 
+	unsigned short	dirEntryPosition;	which directory entry position, like file pos 
+	DE *	directory;			Pointer to the loaded directory you want to iterate 
+	struct fs_diriteminfo * di;
+
+fs_diriteminfo --> 
+    unsigned short d_reclen;    length of this record 
+    unsigned char fileType;    
+    char d_name[256]; 
+*/
+fdDir * fs_opendir(const char *pathname) 
+{
+    ppInfo *pathInfo = malloc(sizeof(ppInfo));
+
+    int retVal = parsePath(pathname, pathInfo);
+
+    if (retVal != 0)
+    {
+        printf("Error occured with the following path!\n");
+        return NULL;
+    }
+
+    fdDir * dirp = malloc(sizeof(fdDir));
+    
+    if (dirp == NULL)
+    {
+        printf("Error allocating memory for fdDir\n");
+        return NULL;
+    }
+
+    dirp->dirEntryPosition = 0;
+    dirp->d_reclen = 0; // length of record (how many directory entries are in there?)
+    dirp->directory = NULL;
+    dirp->di = NULL; // is whatever fs_readdir returns
+        
+}
+
+// 
+struct fs_diriteminfo *fs_readdir(fdDir *dirp)
+{
+    if (dirp == NULL)
+    {
+        printf("Error: Nothing to read.\n");
+        return NULL;
+    }
+
+    struct fs_diriteminfo * iteminfo = malloc(sizeof(struct fs_diriteminfo));
+
+
+}
+
+int fs_closedir(fdDir *dirp)
+{
+    if (dirp != NULL)
+    {
+        free(dirp->di);
+        free(dirp);  
+        return 0;
+    }
+    return -1;
+}
