@@ -93,7 +93,7 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     int extentIndex = 0;
     // where extent starts from
     int startBlock = 0;
-    
+
     while (blockCount < numBlocks)
     {
         int consecutiveFreeBlocks = 0;
@@ -164,9 +164,6 @@ int loadFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
 {
     int sizeOfMapBytes = 2561;
     int sizeOfMapBlocks = 5;
-
-    printf("Size of Map Bytes: %d\n", sizeOfMapBytes);
-    printf("Size of Map Blocks: %d\n", sizeOfMapBlocks);
 
     freeSpaceMap = (uint8_t *)calloc(sizeOfMapBytes, sizeof(uint8_t));
 

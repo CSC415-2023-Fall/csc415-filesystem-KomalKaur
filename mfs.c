@@ -37,17 +37,8 @@ int fs_mkdir(char *pathname, mode_t mode)
     DirEntry *parent = pathInfo->parent;
 
     int size = parent->size;
-
-    printf("SIZE: %d\n", size);
-
     int index = findNextAvailableEntryInDir(parent);\
-
     int parentStartBlock = parent->directoryStartBlock;
-
-    printf("PARENT START BLOCK: %d\n", parentStartBlock);
-
-    printf("INDEX: %d\n\n", index);
-
 
     if (index == -1)
     {
@@ -60,7 +51,7 @@ int fs_mkdir(char *pathname, mode_t mode)
 
     int startBlock = initDirectory(20, 512, parent);
     printf("START BLOCK IN MKDIR(): %d\n", startBlock);
-    
+
     if (startBlock == -1)
     {
         printf("Error in initDirectory()");
@@ -80,8 +71,15 @@ int fs_mkdir(char *pathname, mode_t mode)
     parent[index].timeCreated = dot->timeCreated;
     parent[index].directoryStartBlock = dot->directoryStartBlock;
 
-    printf("FILENAME: %s\n", parent[index].fileName);
-    printf("SUCESSFULLY CREATED DIRECTORY!!\n");
+    printf("SIZE of parent: %ld\n", parent[0].size);
+    printf("SIZE of dot: %ld\n", dot->size);
+
+    int bSize = 512;
+    int numBlocks = (dot->size + bSize - 1) / bSize;
+
+    printf("BLOCKSSS of dot: %d\n", numBlocks);
+
+    LBAwrite(parent, numBlocks, parentStartBlock);
     free(pathInfo);
     free(dot);
 

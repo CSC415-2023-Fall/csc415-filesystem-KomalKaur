@@ -46,15 +46,9 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		loadFreeSpace(numberOfBlocks, blockSize);
 		loadRootDir();
 		loadCWD();
-
-		printBitMap();
 		fs_mkdir("/Users", 1);
 
-		printf("DIFF FILE NAMES: %s\n", rootDir[0].fileName);
-		printf("DIFF FILE NAMES: %s\n", rootDir[1].fileName);
-		printf("DIFF FILE NAMES: %s\n", rootDir[2].fileName);
-		printf("DIFF FILE NAMES: %s\n", rootDir[3].fileName);
-
+		//initVCB(numberOfBlocks, blockSize);
 		return 0; // volume already is initalized
 	}
 	else

@@ -66,7 +66,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[i].lastAccessed = 0;
         directoryEntries[i].timeCreated = 0;
         directoryEntries[i].isDirectory = 0;
-        directoryEntries[i].isDirectory = NULL;
+        directoryEntries[i].directoryStartBlock = -1;
     }
 
     time_t t = time(NULL);
@@ -117,7 +117,6 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].directoryStartBlock = firstEntryPtr->directoryStartBlock;
     }
 
-    printf("START BLOCK: %d\n", startBlock);
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
 
@@ -266,10 +265,13 @@ int findEntryInDir(DirEntry *directory, char *entryName)
 {
     if (directory == NULL || entryName == NULL)
     {
+        printf("INVALID INPUT");
         return -1; // Error code for invalid inputs
     }
 
     int numEntries = directory->size / sizeof(DirEntry);
+
+    //printf(NUMBER OF ENTRIES": %d\n", numEntries);
 
     for (int i = 0; i < numEntries; i++)
     {
