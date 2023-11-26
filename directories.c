@@ -12,10 +12,9 @@
  * File: directories.c
  *
  * Description:
- * This file contains the initDirectory() funtction which
- * intializes a directory. It sets inital metadata for each
- * entry and handles the "." and ".." structure for file
- * systems. The directory is then written to disk
+ * This file contains the initDirectory() function which
+ * intializes a directory. It also contains other directory 
+ * functions and helper functions used bythe file system.
  **************************************************************/
 
 #include "directories.h"
@@ -23,8 +22,18 @@
 
 DirEntry *rootDir;
 DirEntry *cwd;
-DirEntry *dot;
 
+// Function: initDirectory
+// Description: Sets initial metadata for each entry and handles the "." and ".." structure for file systems.
+// The directory is then written to disk.
+// Parameters:
+//   - int initialDirEntries: The initial number of directory entries.
+//   - uint64_t blockSize: The block size for the file system.
+//   - DirEntry *parent: Pointer to the parent directory. If NULL, the function handles the root directory case.
+// Returns:
+//   - int: Start block of where directory entries start on disk (or -1 in case of an error).
+//   Note: The function dynamically allocates memory for directory entries and should be freed by the caller
+//   if the parent is NULL (root directory case).
 int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 {
     // there has to be at least 1 directory entry
@@ -34,17 +43,11 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         return -1;
     }
 
+    // calculations needed for allocation and writing
     int sizeOfDE = sizeof(DirEntry);
-
     int rootDirSizeBytes = initialDirEntries * sizeOfDE;
     int rootDirSizeBlocks = (initialDirEntries * sizeOfDE + blockSize - 1) / blockSize;
-
     int actualDirEntries = rootDirSizeBytes / sizeof(DirEntry);
-
-    // printf("\nrootDirSizeBytes: %d\n", rootDirSizeBytes);
-    // printf("rootDirSizeBlocks: %d\n", rootDirSizeBlocks);
-    // printf("Size of DE: %d \n",  sizeof(DirEntry));
-    // printf("ACTUAL: %d\n", actualDirEntries);
 
     // allocate memory for the directory entries
     DirEntry *directoryEntries = malloc(actualDirEntries * sizeof(DirEntry));
@@ -56,7 +59,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         return -1;
     }
 
-    // Initialize directory entries
+    // Initialize directory entries with default values
     for (int i = 0; i < actualDirEntries; ++i)
     {
         directoryEntries[i].fileName[0] = '\0';
@@ -71,7 +74,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
 
     time_t t = time(NULL);
 
-    // create new directory
+    // create new directory and set its metadata
     strcpy(directoryEntries[0].fileName, ".");
     directoryEntries[0].size = actualDirEntries * sizeof(DirEntry);
     directoryEntries[0].isDirectory = 1;
@@ -84,15 +87,14 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     // return start block of where directory entries start on disk
     int startBlock = directoryEntries[0].extentTable->start;
 
-    printBitMap();
-
     DirEntry *firstEntryPtr;
 
     // handle root directory case
     if (parent != NULL)
     {
         firstEntryPtr = parent;
-
+        
+        // Copy details for the ".." directory entry (parent directory)
         strcpy(directoryEntries[1].fileName, "..");
         directoryEntries[1].size = firstEntryPtr->size;
         directoryEntries[1].isDirectory = firstEntryPtr->isDirectory;
@@ -120,19 +122,26 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
 
-    // TODO: check if this works
+    // free the directory entries the first time around
     if (parent == NULL)
     {
-        printf("FREED DIR ENTRIES");
         free(directoryEntries);
     }
 
     return startBlock; // Return start block of directory entries
 }
 
+// Function: loadRootDir
+// Description: Load the root directory off disk to be used by the program.
+// Returns:
+//   - int: 0 on success
+//         -1 on failure.
 int loadRootDir()
 {
+    // This is hardcoded but should not be; had trouble using variables
     int rootDirSize = 6 * 512;
+
+    // Malloc memory for the directory and check if the malloc succeeded
     rootDir = (DirEntry *)malloc(rootDirSize);
 
     if (rootDir == NULL)
@@ -140,6 +149,7 @@ int loadRootDir()
         return -1;
     }
 
+    // Read the rootDir back from disk
     LBAread(rootDir, 6, 6);
     return 0;
 }
@@ -151,8 +161,21 @@ int loadCWD()
     return 0;
 }
 
+// Function: parsePath
+// Description: Used to retrieve actual directory entries when given a path name.
+// Parameters:
+//   - char *pathname: The path name to parse.
+//   - ppInfo *ppi: Pointer to a structure (ppInfo) that will hold information about the parsed path.
+// Returns:
+//   -  0: Success
+//   - -1: Invalid parameters (pathname or ppi is NULL)
+//   - -2: Path error (directory not found or not a directory)
+//   Note: The function dynamically allocates memory for the last element in the path (ppi->lastElement),
+//   so it's the caller's responsibility to free this memory when it's no longer needed.
+
 int parsePath(char *pathname, ppInfo *ppi)
-{
+{   
+    // check if parameters are valid
     if (pathname == NULL || ppi == NULL)
     {
         return -1;
@@ -161,6 +184,7 @@ int parsePath(char *pathname, ppInfo *ppi)
     DirEntry *startPath = malloc(sizeof(DirEntry));
     DirEntry *parent = malloc(sizeof(DirEntry));
 
+    // check if path is absolute or relative
     if (pathname[0] == '/')
     {
         startPath = rootDir;
@@ -175,8 +199,10 @@ int parsePath(char *pathname, ppInfo *ppi)
     char *token1;
     char *saveptr = NULL;
 
+    // tokenize path using "/" as a delimiter
     token1 = strtok_r(pathname, "/", &saveptr);
 
+    // check if it path is root if there is no token after "/"
     if (token1 == NULL)
     {
         if (strcmp(pathname, "/") == 0)
@@ -196,6 +222,8 @@ int parsePath(char *pathname, ppInfo *ppi)
         // look for name in directory entries one by one
         int index = findEntryInDir(parent, token1);
         token2 = strtok_r(NULL, "/", &saveptr);
+
+        // If this is the last token, store the information in ppInfo
         if (token2 == NULL)
         {
             ppi->parent = parent;
@@ -205,18 +233,22 @@ int parsePath(char *pathname, ppInfo *ppi)
             return 0;
         }
 
+        // directory was not found in the parent
         if (index == -1)
         {
             return -2;
         }
 
+        // check if dir is a directory
         if (!isDir(&parent[index]))
         {
             return -2;
         }
 
+        // load next directory level
         DirEntry *temp = LoadDir(&(parent[index]));
 
+    // free memory if parent is not the starting path
         if (parent != startPath)
         {
             free(parent);
@@ -226,41 +258,36 @@ int parsePath(char *pathname, ppInfo *ppi)
         token1 = token2;
     }
 
+    // free memory allocated for starting path
     free(startPath);
     return 0;
 }
 
-void testParsePath(char *pathname)
-{
-    ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
-
-    int retVal = parsePath(pathname, pathInfo);
-
-    if (retVal != 0)
-    {
-        printf("Parse path failed");
-    }
-
-    DirEntry *parent = malloc(sizeof(DirEntry));
-
-    parent = pathInfo->parent;
-
-    printf("Parent: %s\n", parent->fileName);
-
-    printf("INDEX: %d\n", pathInfo->index);
-    printf("Last Element: %s\n", pathInfo->lastElement);
-}
-
+// Function: isDir
+// Description: Checks whether a given directory entry represents a directory.
+// Parameters:
+//   - DirEntry *entry: Pointer to the directory entry to be checked.
+// Returns:
+//   - int: 1 if the entry represents a directory, 0 if not, -1 for invalid input.
 int isDir(DirEntry *entry)
 {
+    // Check for invalid input
     if (entry == NULL)
     {
         return -1; // Error code for invalid input
     }
 
-    return entry->isDirectory; // Return directory status (1 for directory, 0 for not a directory)
+    // Return directory status (1 for directory, 0 for not a directory)
+    return entry->isDirectory;
 }
 
+// Function: findEntryInDir
+// Description: Finds the index of a directory entry with a given name in a directory.
+// Parameters:
+//   - DirEntry *directory: Pointer to the directory in which to search.
+//   - char *entryName: Name of the directory entry to find.
+// Returns:
+//   - int: Index of the found directory entry, or -1 if not found or for invalid inputs.
 int findEntryInDir(DirEntry *directory, char *entryName)
 {
     if (directory == NULL || entryName == NULL)
@@ -270,8 +297,6 @@ int findEntryInDir(DirEntry *directory, char *entryName)
     }
 
     int numEntries = directory->size / sizeof(DirEntry);
-
-    //printf(NUMBER OF ENTRIES": %d\n", numEntries);
 
     for (int i = 0; i < numEntries; i++)
     {
@@ -284,6 +309,12 @@ int findEntryInDir(DirEntry *directory, char *entryName)
     return -1; // Return -1 if the entry is not found in the directory
 }
 
+// Function: findNextAvailableEntryInDir
+// Description: Finds the index of the next available entry in a directory.
+// Parameters:
+//   - DirEntry *directory: Pointer to the directory in which to search.
+// Returns:
+//   - int: Index of the next available entry, or -1 if not found or for invalid inputs.
 int findNextAvailableEntryInDir(DirEntry *directory)
 {
 
@@ -319,6 +350,12 @@ int findNextAvailableEntryInDir(DirEntry *directory)
     return -1; // Return -1 if no available entry is found in the directory
 }
 
+// Function: LoadDir
+// Description: Loads a directory structure from disk based on the given directory entry.
+// Parameters:
+//   - DirEntry *entry: Pointer to the directory entry to load.
+// Returns:
+//   - DirEntry *: Pointer to the loaded directory structure, or NULL for invalid inputs or failures.
 DirEntry *LoadDir(DirEntry *entry)
 {
     if (entry == NULL || entry->isDirectory == 0)
@@ -352,27 +389,6 @@ DirEntry *LoadDir(DirEntry *entry)
     // Returning the directory structure
     return directoryStructure;
 }
-
-// /// @brief Finds an empty spot in the passed dirEntry
-// /// @param directory
-// /// @return returns the first index in the dir that is empty
-// int findEmptySpotInDir(DirEntry *directory){
-
-//     if(directory == NULL || entryName == NULL){
-//         return -1;
-//     }
-
-//     int numEntries = directory->size / sizeof(DirEntry); // find the size of dir
-
-//     // loop through to find an empty spot
-//     for(int i = 0; i < numEntries; i++){
-//         if(strcmp(directory[i].fileName, "") == 0){
-//             return i;
-//         }
-//     }
-//     //if none found return -1
-//     return -1;
-// }
 
 /// @brief Function just to check if the dir is empty for rmdir. Acts as a boolean
 /// @param directory

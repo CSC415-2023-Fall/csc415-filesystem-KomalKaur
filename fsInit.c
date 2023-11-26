@@ -37,10 +37,6 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 	LBAread(tempVCB, 1, 0);
 
-	int sizeOfMapBytes = (numberOfBlocks / 8) + 1;
-    int sizeOfMapBlocks = (sizeOfMapBytes + blockSize - 1) / blockSize;
-
-
 	if (tempVCB->Signature == SIGNATURE)
 	{
 		loadFreeSpace(numberOfBlocks, blockSize);
