@@ -37,7 +37,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     DirEntry *parent = pathInfo->parent;
 
     int size = parent->size;
-    int index = findNextAvailableEntryInDir(parent);\
+    int index = findNextAvailableEntryInDir(parent);
     int parentStartBlock = parent->directoryStartBlock;
 
     if (index == -1)
@@ -85,7 +85,6 @@ int fs_mkdir(char *pathname, mode_t mode)
 
     return 0;
 }
-
 
 int fs_isDir(char *pathname)
 {
@@ -159,19 +158,34 @@ int fs_stat(const char *path, struct fs_stat *buf)
         return -1;
     }
 
-    printf("INDEX: %d", pathInfo->index);
-    DirEntry *entry = malloc(sizeof(DirEntry));
+    DirEntry *parent = pathInfo->parent;
+
+    int index = findEntryInDir(parent, pathInfo->lastElement);
 
     if (pathInfo->index == -1 || pathInfo->lastElement == NULL)
-    {
+    {   
+        int bSize = 512;
+        int sizeInBlocks = (parent[0].size + bSize - 1) / bSize;
 
-        entry = rootDir;
-        buf->st_size = 512;
+        buf->st_accesstime = parent[0].lastAccessed;
+        buf->st_createtime = parent[0].timeCreated;
+        buf->st_modtime = parent[0].lastModified;
+        buf->st_size = parent[0].size;
+        buf->st_blocks = sizeInBlocks;
         return 0;
     }
 
+    int bSize = 512;
+    int sizeInBlocks = (parent[index].size + bSize - 1) / bSize;
+
+    buf->st_accesstime = parent[index].lastAccessed;
+    buf->st_createtime = parent[index].timeCreated;
+    buf->st_modtime = parent[index].lastModified;
+    buf->st_size = parent[index].size;
+    buf->st_blocks = sizeInBlocks;
+
     free(pathInfo);
-    free(entry);
+
     return 0;
 }
 

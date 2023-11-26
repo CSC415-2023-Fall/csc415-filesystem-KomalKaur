@@ -14,7 +14,7 @@
  * Description:
  * This file contains the initDirectory() function which
  * intializes a directory. It also contains other directory 
- * functions and helper functions used bythe file system.
+ * functions and helper functions used bythe file  fasd.
  **************************************************************/
 
 #include "directories.h"
