@@ -1,24 +1,26 @@
 /**************************************************************
-* Class:  CSC-415-01 Fall 2023
-* Names: Collins Gichohi, Louis Houston, Komaldeep Kaur,
-* 			Raymond Liu, Aleia Natividad
-* Student IDs: 922440815, 922379442, 920198887, 916624142, 
-*				922439437
-* GitHub Name: gsnilloC, LouisHouston, komalkaaur, Airray117
-*				leileigoose
-* Group Name: The Strugglers
-* Project: Basic File System
-*
-* File: freespace.c
-*
-* Description: This file contains our free space manager and 
-* all the helper functions needed.
-*
-**************************************************************/
+ * Class:  CSC-415-01 Fall 2023
+ * Names: Collins Gichohi, Louis Houston, Komaldeep Kaur,
+ * 			Raymond Liu, Aleia Natividad
+ * Student IDs: 922440815, 922379442, 920198887, 916624142,
+ *				922439437
+ * GitHub Name: gsnilloC, LouisHouston, komalkaaur, Airray117
+ *				leileigoose
+ * Group Name: The Strugglers
+ * Project: Basic File System
+ *
+ * File: freespace.c
+ *
+ * Description: This file contains our free space manager and
+ * all the helper functions needed.
+ *
+ **************************************************************/
 
 #include "freespace.h"
-#include "b_io.h"
-#include "fsLow.h"
+
+uint8_t *freeSpaceMap;
+uint64_t maxNumberOfBlocks;
+uint64_t bytesPerBlock;
 
 // initialize free space map with first blocks marked as used
 // if bit is set to 0 it is free, if bit is set to 1 it is taken
@@ -92,13 +94,11 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     // where extent starts from
     int startBlock = 0;
 
-    // loop until all requested blocks have been allocated
     while (blockCount < numBlocks)
     {
         int consecutiveFreeBlocks = 0;
-
         // check for consecutive free blocks to allocate extents with
-        for (int i = startBlock; i < maxNumberOfBlocks; ++i)
+        for (int i = startBlock; i < 19531; ++i)
         {
             if (!checkBit(i))
             {
@@ -148,7 +148,7 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     }
 
     // Write the updated map to disk after block allocation
-    int blocksWritten = LBAwrite(freeSpaceMap, 5, 1); 
+    int blocksWritten = LBAwrite(freeSpaceMap, 5, 1);
 
     // debug
     // printf("# of extents: %d\n", extentIndex);
@@ -158,6 +158,23 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
 
     // return extent table after allocation
     return extentTable;
+}
+
+int loadFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
+{
+    int sizeOfMapBytes = 2561;
+    int sizeOfMapBlocks = 5;
+
+    freeSpaceMap = (uint8_t *)calloc(sizeOfMapBytes, sizeof(uint8_t));
+
+    if (freeSpaceMap == NULL)
+    {
+        printf("FREE SPACE CALLOC FAILED");
+        return -1;
+    }
+
+    LBAread(freeSpaceMap, sizeOfMapBlocks, 1);
+    return 0;
 }
 
 // helper function to set bits to used
@@ -186,10 +203,11 @@ int checkBit(int n)
     return (freeSpaceMap[byteIndex] & (1 << (7 - bitIndex))) != 0;
 }
 
+// ./Hexdump/hexdump.linuxM1 SampleVolume --start 64 --count 10
 // debug function to print
 void printBitMap()
 {
-    for (int i = 0; i < maxNumberOfBlocks; i++)
+    for (int i = 0; i < 20; i++)
     {
         if (i % 64 == 0 && i != 0)
         {

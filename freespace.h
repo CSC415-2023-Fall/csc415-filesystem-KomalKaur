@@ -31,18 +31,13 @@ typedef struct extent {
     int count;
 } extent, * pextent;
 
-uint8_t *freeSpaceMap = NULL; 
-uint64_t maxNumberOfBlocks;
-uint64_t bytesPerBlock;
-
-
 // called to when volume is initialized. returns block number
 // of where map starts
 int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize);
 
 // if volume is already initialized load the free space map
 // from disk so it is in memory and ready to use
-int loadFreeSpace (int blockCount, int bytesPerBlock);
+int loadFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize);
 
 // allocateblocks is how you obtain disk blocks
 extent * allocateBlocks(int numBlocks, int minBlocksInExtent);

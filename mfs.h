@@ -1,5 +1,5 @@
 /**************************************************************
-* Class:  CSC-415
+* Class:  CSC-415-01
 * Name: Professor Bierman
 * Student ID: N/A
 * Project: Basic File System
@@ -19,6 +19,7 @@
 #include <time.h>
 
 #include "b_io.h"
+#include "directories.h"
 
 #include <dirent.h>
 #define FT_REGFILE	DT_REG
@@ -56,8 +57,8 @@ typedef struct
 	} fdDir;
 
 // Key directory functions
-int fs_mkdir(const char *pathname, mode_t mode);
-int fs_rmdir(const char *pathname);
+int fs_mkdir(char *pathname, mode_t mode);
+int fs_rmdir(char *pathname);
 
 // Directory iteration functions
 fdDir * fs_opendir(const char *pathname);
