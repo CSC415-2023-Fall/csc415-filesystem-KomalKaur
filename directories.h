@@ -39,6 +39,7 @@ typedef struct {
     time_t timeCreated;
     char isDirectory;
     mode_t permissions;
+    int directoryStartBlock;
 } DirEntry;
 
 

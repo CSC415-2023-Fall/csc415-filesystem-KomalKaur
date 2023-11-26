@@ -93,13 +93,12 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     int extentIndex = 0;
     // where extent starts from
     int startBlock = 0;
-
-    // loop until all requested blocks have been allocated
+    
     while (blockCount < numBlocks)
     {
         int consecutiveFreeBlocks = 0;
         // check for consecutive free blocks to allocate extents with
-        for (int i = startBlock; i < maxNumberOfBlocks; ++i)
+        for (int i = startBlock; i < 19531; ++i)
         {
             if (!checkBit(i))
             {
@@ -161,49 +160,23 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     return extentTable;
 }
 
-int loadMap(uint64_t numberOfBlocks, uint64_t blockSize)
+int loadFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
 {
-    int sizeOfMapBytes = (numberOfBlocks / 8) + 1;
-    int sizeOfMapBlocks = (sizeOfMapBytes + blockSize - 1) / blockSize;
+    int sizeOfMapBytes = 2561;
+    int sizeOfMapBlocks = 5;
 
-    // allocate bytes for map
-    freeSpaceMap = (uint8_t *)malloc(sizeOfMapBytes);
+    printf("Size of Map Bytes: %d\n", sizeOfMapBytes);
+    printf("Size of Map Blocks: %d\n", sizeOfMapBlocks);
 
+    freeSpaceMap = (uint8_t *)calloc(sizeOfMapBytes, sizeof(uint8_t));
 
-    //LBAread(freeSpaceMap, sizeOfMapBlocks, 1);
-    return 0;
-}
-
-int free_blocks(extent *extentTable)
-{
-    if (extentTable == NULL)
+    if (freeSpaceMap == NULL)
     {
+        printf("FREE SPACE CALLOC FAILED");
         return -1;
     }
 
-    int i = 0;
-
-    while (extentTable[i].start != 0 || extentTable->count != 0)
-    {
-        int startBlock = extentTable[i].start;
-        int endBlock = startBlock + extentTable[i].start;
-
-        for (int j = startBlock; j < endBlock; j++)
-        {
-            clearBit(j);
-        }
-
-        i++;
-    }
-
-    int blocksWritten = LBAwrite(freeSpaceMap, 5, 1);
-
-    if (blocksWritten != 1)
-    {
-        fprintf(stderr, "Error writing free space map to disk\n");
-        return -1;
-    }
-
+    LBAread(freeSpaceMap, sizeOfMapBlocks, 1);
     return 0;
 }
 

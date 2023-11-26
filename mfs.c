@@ -40,9 +40,14 @@ int fs_mkdir(char *pathname, mode_t mode)
 
     printf("SIZE: %d\n", size);
 
-    int index = findNextAvailableEntryInDir(parent);
+    int index = findNextAvailableEntryInDir(parent);\
+
+    int parentStartBlock = parent->directoryStartBlock;
+
+    printf("PARENT START BLOCK: %d\n", parentStartBlock);
 
     printf("INDEX: %d\n\n", index);
+
 
     if (index == -1)
     {
@@ -54,26 +59,29 @@ int fs_mkdir(char *pathname, mode_t mode)
     DirEntry *dot = malloc(sizeof(DirEntry));
 
     int startBlock = initDirectory(20, 512, parent);
+    printf("START BLOCK IN MKDIR(): %d\n", startBlock);
+    
+    if (startBlock == -1)
+    {
+        printf("Error in initDirectory()");
+        free(pathInfo);
+        free(dot);
+        return -1;
+    }
 
-    // if (startBlock == -1)
-    // {
-    //     printf("Error in initDirectory()");
-    //     free(pathInfo);
-    //     //free(dot);
-    //     return -1;
-    // }
+    uint64_t blocksRead = LBAread(dot, 1, startBlock);
 
-    // uint64_t blocksRead = LBAread(dot, 1, startBlock);
+    strcpy((parent[index]).fileName, pathInfo->lastElement);
+    parent[index].size = dot->size;
+    parent[index].extentTable = dot->extentTable;
+    parent[index].isDirectory = dot->isDirectory;
+    parent[index].lastAccessed = dot->lastAccessed;
+    parent[index].lastModified = dot->lastModified;
+    parent[index].timeCreated = dot->timeCreated;
+    parent[index].directoryStartBlock = dot->directoryStartBlock;
 
-    // strcpy((parent[index]).fileName, pathInfo->lastElement);
-    // parent[index].size = dot->size;
-    // parent[index].extentTable = dot->extentTable;
-    // parent[index].isDirectory = dot->isDirectory;
-    // parent[index].lastAccessed = dot->lastAccessed;
-    // parent[index].lastModified = dot->lastModified;
-    // parent[index].timeCreated = dot->timeCreated;
-
-    printf("FILENAME: %s", parent[index].fileName);
+    printf("FILENAME: %s\n", parent[index].fileName);
+    printf("SUCESSFULLY CREATED DIRECTORY!!\n");
     free(pathInfo);
     free(dot);
 

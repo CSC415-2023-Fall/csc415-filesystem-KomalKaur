@@ -37,13 +37,23 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 	LBAread(tempVCB, 1, 0);
 
+	int sizeOfMapBytes = (numberOfBlocks / 8) + 1;
+    int sizeOfMapBlocks = (sizeOfMapBytes + blockSize - 1) / blockSize;
+
+
 	if (tempVCB->Signature == SIGNATURE)
 	{
-		loadMap(numberOfBlocks, blockSize);
+		loadFreeSpace(numberOfBlocks, blockSize);
 		loadRootDir();
 		loadCWD();
 
+		printBitMap();
 		fs_mkdir("/Users", 1);
+
+		printf("DIFF FILE NAMES: %s\n", rootDir[0].fileName);
+		printf("DIFF FILE NAMES: %s\n", rootDir[1].fileName);
+		printf("DIFF FILE NAMES: %s\n", rootDir[2].fileName);
+		printf("DIFF FILE NAMES: %s\n", rootDir[3].fileName);
 
 		return 0; // volume already is initalized
 	}
@@ -60,5 +70,6 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 void exitFileSystem()
 {
 	free(rootDir);
+	free(freeSpaceMap);
 	printf("System exiting\n");
 }

@@ -66,6 +66,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[i].lastAccessed = 0;
         directoryEntries[i].timeCreated = 0;
         directoryEntries[i].isDirectory = 0;
+        directoryEntries[i].isDirectory = NULL;
     }
 
     time_t t = time(NULL);
@@ -78,6 +79,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     directoryEntries[0].lastAccessed = t;
     directoryEntries[0].lastModified = t;
     directoryEntries[0].extentTable = allocateBlocks(rootDirSizeBlocks, rootDirSizeBlocks);
+    directoryEntries[0].directoryStartBlock = directoryEntries[0].extentTable->start;
 
     // return start block of where directory entries start on disk
     int startBlock = directoryEntries[0].extentTable->start;
@@ -98,6 +100,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].lastAccessed = firstEntryPtr->lastAccessed;
         directoryEntries[1].lastModified = firstEntryPtr->lastModified;
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
+        directoryEntries[1].directoryStartBlock = firstEntryPtr->directoryStartBlock;
     }
     else if (parent == NULL)
     {
@@ -111,8 +114,10 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].lastAccessed = firstEntryPtr->lastAccessed;
         directoryEntries[1].lastModified = firstEntryPtr->lastModified;
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
+        directoryEntries[1].directoryStartBlock = firstEntryPtr->directoryStartBlock;
     }
 
+    printf("START BLOCK: %d\n", startBlock);
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
 
