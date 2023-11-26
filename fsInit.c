@@ -34,7 +34,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	printf("Initializing File System with %ld blocks with a block size of %ld\n\n", numberOfBlocks, blockSize);
 
 	struct vcb *tempVCB = (struct vcb *)malloc(blockSize);
-	//struct fs_stat statbuf;
+	struct fs_stat statbuf;
 
 	LBAread(tempVCB, 1, 0);
 
@@ -45,7 +45,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		loadCWD();
 		fs_mkdir("/Users", 1);
 
-		//fs_stat("/Users", &statbuf);
+		//testParsePath("/Users/Desktop");
 
 		//initVCB(numberOfBlocks, blockSize);
 		return 0; // volume already is initalized

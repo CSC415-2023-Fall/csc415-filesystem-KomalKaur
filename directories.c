@@ -13,7 +13,7 @@
  *
  * Description:
  * This file contains the initDirectory() function which
- * intializes a directory. It also contains other directory 
+ * intializes a directory. It also contains other directory
  * functions and helper functions used bythe file  fasd.
  **************************************************************/
 
@@ -93,7 +93,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     if (parent != NULL)
     {
         firstEntryPtr = parent;
-        
+
         // Copy details for the ".." directory entry (parent directory)
         strcpy(directoryEntries[1].fileName, "..");
         directoryEntries[1].size = firstEntryPtr->size;
@@ -174,7 +174,7 @@ int loadCWD()
 //   so it's the caller's responsibility to free this memory when it's no longer needed.
 
 int parsePath(char *pathname, ppInfo *ppi)
-{   
+{
     // check if parameters are valid
     if (pathname == NULL || ppi == NULL)
     {
@@ -248,7 +248,7 @@ int parsePath(char *pathname, ppInfo *ppi)
         // load next directory level
         DirEntry *temp = LoadDir(&(parent[index]));
 
-    // free memory if parent is not the starting path
+        // free memory if parent is not the starting path
         if (parent != startPath)
         {
             free(parent);
@@ -261,6 +261,27 @@ int parsePath(char *pathname, ppInfo *ppi)
     // free memory allocated for starting path
     free(startPath);
     return 0;
+}
+
+void testParsePath(char *pathname)
+{
+    ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
+
+    int retVal = parsePath(pathname, pathInfo);
+
+    if (retVal != 0)
+    {
+        printf("Parse path failed");
+    }
+
+    DirEntry *parent = malloc(sizeof(DirEntry));
+
+    parent = pathInfo->parent;
+
+    printf("Parent: %s\n", parent->fileName);
+
+    printf("INDEX: %d\n", pathInfo->index);
+    printf("Last Element: %s\n", pathInfo->lastElement);
 }
 
 // Function: isDir
