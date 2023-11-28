@@ -12,8 +12,7 @@
 * File: directories.h
 *
 * Description: 
-* Header file holds the definitions used to initialize a 
-* directory.
+* Interface of all directory functions.
 **************************************************************/
 #ifndef DIRECTORIES_H
 #define DIRECTORIES_H
@@ -59,6 +58,5 @@ DirEntry *LoadDir(DirEntry *entry);
 int isDir(DirEntry *entry);
 int findEmptySpotInDir(DirEntry *);
 int isDirEmtpy(DirEntry *);
-int setDot(DirEntry * entry);
 
 #endif

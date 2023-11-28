@@ -7,9 +7,8 @@
  * File: mfs.c
  *
  * Description:
- *	This is the file system interface.
- *	This is the interface needed by the driver to interact with
- *	the filesystem.
+ * This is the implementation of the functions needed by the
+ * driver to interact with the filesystem.
  *
  **************************************************************/
 

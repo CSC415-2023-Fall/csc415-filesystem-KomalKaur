@@ -13,7 +13,9 @@
  *
  * Description: Main driver for file system assignment.
  *
- * This file is where you will start and initialize your system
+ * This file is we initialize all the necessary structures for 
+ * the file system only if it is a new volume otherwise just 
+ * load the structures from disk.
  *
  **************************************************************/
 
@@ -53,7 +55,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		//fs_rmdir("/Users");
 		//testLoadDir("/Users");
 
-		free(dir_buf);
+		// free(dir_buf);
 
 		//initVCB(numberOfBlocks, blockSize);
 		return 0; // volume already is initalized

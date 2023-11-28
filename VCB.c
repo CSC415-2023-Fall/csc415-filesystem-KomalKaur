@@ -12,7 +12,8 @@
 * File: VCB.c
 *
 * Description: Basic File System - Volume Control Block
-*
+* Functions used to initialize Volume control block which also
+* initializes the free space and the root directory. 
 **************************************************************/
 #include "VCB.h"
 

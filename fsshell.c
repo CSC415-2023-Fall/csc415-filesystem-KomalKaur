@@ -13,9 +13,8 @@
 *
 * Description: Main driver for file system assignment.
 *
-* Make sure to set the #defined on the CMDxxxx_ON from 0 to 1 
-* when you are ready to test that feature
-*
+* Shell interface to be used by the user to drive the 
+* filesystem. Similar to linux console.
 **************************************************************/
 
 

@@ -12,6 +12,8 @@
 * File: VCB.h
 *
 * Description: Basic File System - Volume Control Block
+* Interface of functions needed to initialize our volume 
+* control block.
 *
 **************************************************************/
 #include <stddef.h>

@@ -12,7 +12,8 @@
 * File: b_io.c
 *
 * Description: Basic File System - Key File I/O Operations
-*
+* Implementation of the basic I/O functions. Mimics the file 
+* handling procedures of an operating system.
 **************************************************************/
 
 #include <stdio.h>
@@ -69,15 +70,15 @@ b_io_fd b_getFCB ()
 // O_RDONLY, O_WRONLY, or O_RDWR
 b_io_fd b_open(char *filename, int flags)
 {
-    b_io_fd returnFd;
+    b_io_fd fd;
 
     if (startup == 0)
         b_init(); // Initialize our system
 
-    returnFd = b_getFCB(); // get our own file descriptor
+    fd = b_getFCB(); // get our own file descriptor
 
     // check for error - all used FCB's
-    if (returnFd == -1)
+    if (fd == -1)
     {
         fprintf(stderr, "Error: Maximum number of open files reached\n");
         return -1;
@@ -85,11 +86,11 @@ b_io_fd b_open(char *filename, int flags)
 
     //TODO: handle opening the file 
 	
-    fcbArray[returnFd].buff = (char *)malloc(B_CHUNK_SIZE);
-    fcbArray[returnFd].index = 0;
-    fcbArray[returnFd].buflen = 0;
+    fcbArray[fd].buff = (char *)malloc(B_CHUNK_SIZE);
+    fcbArray[fd].index = 0;
+    fcbArray[fd].buflen = 0;
 
-    return returnFd; // all set
+    return fd; // all set
 }
 
 
@@ -147,22 +148,96 @@ int b_write (b_io_fd fd, char * buffer, int count)
 //  |             |                                                |        |
 //  | Part1       |  Part 2                                        | Part3  |
 //  +-------------+------------------------------------------------+--------+
-int b_read (b_io_fd fd, char * buffer, int count)
-	{
 
-	if (startup == 0) b_init();  //Initialize our system
+// Interface to read a buffer
+int b_read(b_io_fd fd, char *buffer, int count)
+{
+    if (startup == 0)
+        b_init(); // Initialize our system
 
-	// check that fd is between 0 and (MAXFCBS-1)
-	if ((fd < 0) || (fd >= MAXFCBS))
-		{
-		return (-1); 					//invalid file descriptor
-		}
-		
-	return (0);	//Change this
-	}
+    // check that fd is between 0 and (MAXFCBS-1)
+    if ((fd < 0) || (fd >= MAXFCBS))
+    {
+        return -1; // invalid file descriptor
+    }
+
+    // and check that the specified FCB is actually in use
+    if (fcbArray[fd].buff == NULL) // File not open for this descriptor
+    {
+        return -1;
+    }
+
+    int bytesRead = 0; // Variable to keep track of the number of bytes read
+
+    // Part 1: Read from the current buffer
+    if (fcbArray[fd].buflen > 0)
+    {
+        int bytesToCopy = (count < fcbArray[fd].buflen) ? count : fcbArray[fd].buflen;
+        memcpy(buffer, fcbArray[fd].buff + fcbArray[fd].index, bytesToCopy);
+        fcbArray[fd].index += bytesToCopy;
+        fcbArray[fd].buflen -= bytesToCopy;
+        bytesRead += bytesToCopy;
+        count -= bytesToCopy;
+        buffer += bytesToCopy;
+    }
+
+    // Part 2: Read full block size chunks directly
+    while (count >= B_CHUNK_SIZE)
+    {
+        uint64_t blocksRead = LBAread(buffer, 1, fcbArray[fd].fi->location);
+
+        if (blocksRead != 1)
+        {
+            // Error reading from the file
+            return -1;
+        }
+
+        bytesRead += B_CHUNK_SIZE;
+        count -= B_CHUNK_SIZE;
+        buffer += B_CHUNK_SIZE;
+    }
+
+    // Part 3: Read the remaining bytes after fulfilling part 1 and part 2
+    if (count > 0)
+    {
+        // Refill the buffer and read the remaining bytes
+        uint64_t blocksRead = LBAread(fcbArray[fd].buff, 1, fcbArray[fd].fi->location);
+
+        if (blocksRead != 1)
+        {
+            // Error reading from the file
+            return -1;
+        }
+
+        int bytesToCopy = (count < B_CHUNK_SIZE) ? count : B_CHUNK_SIZE;
+        memcpy(buffer, fcbArray[fd].buff, bytesToCopy);
+        fcbArray[fd].index = bytesToCopy;
+        fcbArray[fd].buflen = B_CHUNK_SIZE - bytesToCopy;
+
+        bytesRead += bytesToCopy;
+    }
+
+    return bytesRead;
+}
+
+
 	
 // Interface to Close the file	
-int b_close (b_io_fd fd)
-	{
+int b_close(b_io_fd fd)
+{
+    if (startup == 0)
+        b_init(); // Initialize our system
 
-	}
+    // check that fd is between 0 and (MAXFCBS-1)
+    if ((fd < 0) || (fd >= MAXFCBS))
+    {
+        return (-1); // invalid file descriptor
+    }
+
+    // TODO: Perform any necessary cleanup for the file descriptor
+
+    free(fcbArray[fd].buff); // Free the memory allocated for the file buffer
+    fcbArray[fd].buff = NULL; // Mark the FCB as free
+
+    return 0; // Success
+}

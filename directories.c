@@ -13,8 +13,10 @@
  *
  * Description:
  * This file contains the initDirectory() function which
- * intializes a directory. It also contains other directory
- * functions and helper functions used bythe file  fasd.
+ * intializes a directory and the parsePath() function which
+ * is used to turn pathnames into actual Directory Entries.
+ * It also contains other directory functions and helper 
+ * functions used to handle directories.
  **************************************************************/
 
 #include "directories.h"
@@ -123,7 +125,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].directoryStartBlock = firstEntryPtr->directoryStartBlock;
         directoryEntries[1].directoryBlockCount = firstEntryPtr->directoryBlockCount;
     }
-    
+
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
 
@@ -445,29 +447,6 @@ DirEntry *LoadDir(DirEntry *entry)
     return directoryStructure;
 }
 
-/// @brief Function just to check if the dir is empty for rmdir. Acts as a boolean
-/// @param directory
-/// @return Returns 0 if empty, 1 if not
-int isDirEmtpy(DirEntry *directory)
-{
-
-    if (directory == NULL)
-    {
-        return -1;
-    }
-
-    int numEntries = directory->size / sizeof(DirEntry);
-
-    for (int i = 0; i < numEntries; i++)
-    {
-        if (strcmp(directory[i].fileName, "") != 0)
-        {
-            return 0; // not empty
-        }
-    }
-
-    return 1; // empty
-}
 
 /// @brief Deletes the dirEntry by setting all of its values to initial values
 /// @param directory
