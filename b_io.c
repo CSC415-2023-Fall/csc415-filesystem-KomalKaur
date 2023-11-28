@@ -67,21 +67,31 @@ b_io_fd b_getFCB ()
 // Interface to open a buffered file
 // Modification of interface for this assignment, flags match the Linux flags for open
 // O_RDONLY, O_WRONLY, or O_RDWR
-b_io_fd b_open (char * filename, int flags)
-	{
-	b_io_fd returnFd;
+b_io_fd b_open(char *filename, int flags)
+{
+    b_io_fd returnFd;
 
-	//*** TODO ***:  Modify to save or set any information needed
-	//
-	//
-		
-	if (startup == 0) b_init();  //Initialize our system
+    if (startup == 0)
+        b_init(); // Initialize our system
+
+    returnFd = b_getFCB(); // get our own file descriptor
+
+    // check for error - all used FCB's
+    if (returnFd == -1)
+    {
+        fprintf(stderr, "Error: Maximum number of open files reached\n");
+        return -1;
+    }
+
+    //TODO: handle opening the file 
 	
-	returnFd = b_getFCB();				// get our own file descriptor
-										// check for error - all used FCB's
-	
-	return (returnFd);						// all set
-	}
+    fcbArray[returnFd].buff = (char *)malloc(B_CHUNK_SIZE);
+    fcbArray[returnFd].index = 0;
+    fcbArray[returnFd].buflen = 0;
+
+    return returnFd; // all set
+}
+
 
 
 // Interface to seek function	
