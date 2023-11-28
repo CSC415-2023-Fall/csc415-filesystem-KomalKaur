@@ -304,7 +304,8 @@ fdDir *fs_opendir(const char *pathname)
     }
 
     // Parse the given pathname and store information in pathInfo
-    char *path = pathname;
+    char path[strlen(pathname)];
+    strcpy(path, pathname);
     int returnVal = parsePath(path, pathInfo);
 
     // Check if parsing was successful
@@ -421,80 +422,80 @@ fs_diriteminfo -->
     unsigned char fileType;    
     char d_name[256]; 
 */
-fdDir * fs_opendir(const char *pathname) 
-{
-    printf("\nRunning fs_opendir...\n");
+// fdDir * fs_opendir(const char *pathname) 
+// {
+//     printf("\nRunning fs_opendir...\n");
 
-    ppInfo *pathInfo = malloc(sizeof(ppInfo));
+//     ppInfo *pathInfo = malloc(sizeof(ppInfo));
 
-    if (pathInfo == NULL)
-    {
-        printf("Error allocating memory for pathInfo\n");
-        free(pathInfo);
-        return NULL;
-    }
+//     if (pathInfo == NULL)
+//     {
+//         printf("Error allocating memory for pathInfo\n");
+//         free(pathInfo);
+//         return NULL;
+//     }
 
-    char path[strlen(pathname)];
-    strcpy(path, pathname);
-    printf("path is %s\n", path);
+//     char path[strlen(pathname)];
+//     strcpy(path, pathname);
+//     printf("path is %s\n", path);
 
-    int retVal = parsePath(path, pathInfo);
+//     int retVal = parsePath(path, pathInfo);
 
-    if (retVal != 0)
-    {
-        printf("Error occured with the parsePath!\n");
-        free(pathInfo);
-        return NULL;
-    }
+//     if (retVal != 0)
+//     {
+//         printf("Error occured with the parsePath!\n");
+//         free(pathInfo);
+//         return NULL;
+//     }
 
-    fdDir * dirp = malloc(sizeof(fdDir));
+//     fdDir * dirp = malloc(sizeof(fdDir));
     
-    if (dirp == NULL)
-    {
-        printf("Error allocating memory for fdDir\n");
-        free(dirp);
-        return NULL;
-    }
+//     if (dirp == NULL)
+//     {
+//         printf("Error allocating memory for fdDir\n");
+//         free(dirp);
+//         return NULL;
+//     }
 
-    dirp->dirEntryPosition = 0;
-    dirp->directory = pathInfo->parent;
-    dirp->d_reclen = dirp->directory->size; 
-    dirp->di = NULL; /* Pointer to the structure you return from read */
+//     dirp->dirEntryPosition = 0;
+//     dirp->directory = pathInfo->parent;
+//     dirp->d_reclen = dirp->directory->size; 
+//     dirp->di = NULL; /* Pointer to the structure you return from read */
 
-    printf("~Path Info~\n");
-    printf("Index: %d\n", pathInfo->index);
+//     printf("~Path Info~\n");
+//     printf("Index: %d\n", pathInfo->index);
 
-    printf("\n~dirp information~\n");
-    printf("dirEntryPosition: %d\n", dirp->dirEntryPosition);
-    //printf("directory: %s\n", dirp->directory);
-    printf("length:%d\n", dirp->d_reclen);
-    return dirp;       
-}
+//     printf("\n~dirp information~\n");
+//     printf("dirEntryPosition: %d\n", dirp->dirEntryPosition);
+//     //printf("directory: %s\n", dirp->directory);
+//     printf("length:%d\n", dirp->d_reclen);
+//     return dirp;       
+// }
 
-// 
-struct fs_diriteminfo *fs_readdir(fdDir *dirp)
-{
-    printf("\nRunning readdir...\n");
-    if (dirp == NULL)
-    {
-        printf("Error: Nothing to read.\n");
-        return NULL;
-    }
+// // 
+// struct fs_diriteminfo *fs_readdir(fdDir *dirp)
+// {
+//     printf("\nRunning readdir...\n");
+//     if (dirp == NULL)
+//     {
+//         printf("Error: Nothing to read.\n");
+//         return NULL;
+//     }
 
-    struct fs_diriteminfo * iteminfo = malloc(sizeof(struct fs_diriteminfo));
+//     struct fs_diriteminfo * iteminfo = malloc(sizeof(struct fs_diriteminfo));
 
-    if (iteminfo == NULL)
-    {
-        printf("Error allocating memory for iteminfo\n");
-        free(iteminfo);
-        return NULL;
-    }
+//     if (iteminfo == NULL)
+//     {
+//         printf("Error allocating memory for iteminfo\n");
+//         free(iteminfo);
+//         return NULL;
+//     }
 
-    return iteminfo;
+//     return iteminfo;
 
-}
+// }
 
-int fs_closedir(fdDir *dirp)
+// int fs_closedir(fdDir *dirp)
 {
     printf("\nRunning closedir...\n");
     if (dirp != NULL)

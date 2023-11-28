@@ -415,8 +415,8 @@ DirEntry *LoadDir(DirEntry *entry)
     // Calculate the number of blocks to read for the directory based on its extent information
     uint64_t blockSize = 512;
     // uint64_t totalBlocksToRead = dirExtent->count;
-    uint64_t totalBlocksToRead = entry->size/blockSize + 1;
-    uint64_t startBlock = &dirExtent->start;
+    uint64_t totalBlocksToRead = dirExtent->count;
+    uint64_t startBlock = dirExtent->start;
 
     printf("Blocks to read: %ld\n", entry->size/blockSize + 1);
     printf("Start block: %ld\n", startBlock);
