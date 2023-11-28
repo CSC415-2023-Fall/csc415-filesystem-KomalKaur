@@ -18,6 +18,7 @@
 // Function to create a new directory with the given pathname and mode
 int fs_mkdir(char *pathname, mode_t mode)
 {
+    printf("\nRunning mkdir...\n");
     // Allocate memory for path information
     ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
 
@@ -277,13 +278,27 @@ fs_diriteminfo -->
 */
 fdDir * fs_opendir(const char *pathname) 
 {
+    printf("\nRunning fs_opendir...\n");
+
     ppInfo *pathInfo = malloc(sizeof(ppInfo));
 
-    int retVal = parsePath(pathname, pathInfo);
+    if (pathInfo == NULL)
+    {
+        printf("Error allocating memory for pathInfo\n");
+        free(pathInfo);
+        return NULL;
+    }
+
+    char path[strlen(pathname)];
+    strcpy(path, pathname);
+    printf("path is %s\n", path);
+
+    int retVal = parsePath(path, pathInfo);
 
     if (retVal != 0)
     {
-        printf("Error occured with the following path!\n");
+        printf("Error occured with the parsePath!\n");
+        free(pathInfo);
         return NULL;
     }
 
@@ -292,19 +307,29 @@ fdDir * fs_opendir(const char *pathname)
     if (dirp == NULL)
     {
         printf("Error allocating memory for fdDir\n");
+        free(dirp);
         return NULL;
     }
 
     dirp->dirEntryPosition = 0;
-    dirp->d_reclen = 0; // length of record (how many directory entries are in there?)
-    dirp->directory = NULL;
-    dirp->di = NULL; // is whatever fs_readdir returns
-        
+    dirp->directory = pathInfo->parent;
+    dirp->d_reclen = dirp->directory->size; 
+    dirp->di = NULL; /* Pointer to the structure you return from read */
+
+    printf("~Path Info~\n");
+    printf("Index: %d\n", pathInfo->index);
+
+    printf("\n~dirp information~\n");
+    printf("dirEntryPosition: %d\n", dirp->dirEntryPosition);
+    //printf("directory: %s\n", dirp->directory);
+    printf("length:%d\n", dirp->d_reclen);
+    return dirp;       
 }
 
 // 
 struct fs_diriteminfo *fs_readdir(fdDir *dirp)
 {
+    printf("\nRunning readdir...\n");
     if (dirp == NULL)
     {
         printf("Error: Nothing to read.\n");
@@ -313,11 +338,20 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp)
 
     struct fs_diriteminfo * iteminfo = malloc(sizeof(struct fs_diriteminfo));
 
+    if (iteminfo == NULL)
+    {
+        printf("Error allocating memory for iteminfo\n");
+        free(iteminfo);
+        return NULL;
+    }
+
+    return iteminfo;
 
 }
 
 int fs_closedir(fdDir *dirp)
 {
+    printf("\nRunning closedir...\n");
     if (dirp != NULL)
     {
         free(dirp->di);

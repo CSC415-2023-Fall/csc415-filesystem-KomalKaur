@@ -175,6 +175,9 @@ int loadCWD()
 
 int parsePath(char *pathname, ppInfo *ppi)
 {
+    printf("Running Parse Path...\n");
+    printf("path Name: %s\n", pathname);
+
     // check if parameters are valid
     if (pathname == NULL || ppi == NULL)
     {
@@ -183,6 +186,16 @@ int parsePath(char *pathname, ppInfo *ppi)
 
     DirEntry *startPath = malloc(sizeof(DirEntry));
     DirEntry *parent = malloc(sizeof(DirEntry));
+
+    if (startPath == NULL || parent == NULL)
+    {
+        printf("Error allocating memory!\n");
+        free(startPath);
+        free(parent);
+        return -1;
+    }
+
+    printf("1\n");
 
     // check if path is absolute or relative
     if (pathname[0] == '/')
@@ -196,11 +209,19 @@ int parsePath(char *pathname, ppInfo *ppi)
 
     parent = startPath;
 
+    printf("2\n");
+
     char *token1;
+    char *token2;
     char *saveptr = NULL;
+    char * delim = "/";
+    char path[strlen(pathname) +1]; 
+    strcpy(path, pathname);
 
     // tokenize path using "/" as a delimiter
-    token1 = strtok_r(pathname, "/", &saveptr);
+    token1 = strtok_r(path, delim, &saveptr);
+
+    printf("3\n");
 
     // check if it path is root if there is no token after "/"
     if (token1 == NULL)
@@ -216,12 +237,15 @@ int parsePath(char *pathname, ppInfo *ppi)
         return -1;
     }
 
-    char *token2;
+    // token2 = strtok_r(NULL, delim, &saveptr);
+    // printf("token2: %s\n", token2);
+    printf("4\n");
+
     while (token1 != NULL)
     {
         // look for name in directory entries one by one
         int index = findEntryInDir(parent, token1);
-        token2 = strtok_r(NULL, "/", &saveptr);
+        token2 = strtok_r(NULL, delim, &saveptr);
 
         // If this is the last token, store the information in ppInfo
         if (token2 == NULL)
@@ -245,9 +269,10 @@ int parsePath(char *pathname, ppInfo *ppi)
             return -2;
         }
 
+
         // load next directory level
         DirEntry *temp = LoadDir(&(parent[index]));
-
+        printf("Here!!!\n");
         // free memory if parent is not the starting path
         if (parent != startPath)
         {
@@ -255,8 +280,9 @@ int parsePath(char *pathname, ppInfo *ppi)
         }
 
         parent = temp;
-        token1 = token2;
+        //token1 = token2;
     }
+    printf("5\n");
 
     // free memory allocated for starting path
     free(startPath);
@@ -266,6 +292,11 @@ int parsePath(char *pathname, ppInfo *ppi)
 void testParsePath(char *pathname)
 {
     ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
+    if (pathInfo == NULL)
+    {
+        free(pathInfo);
+
+    }
 
     int retVal = parsePath(pathname, pathInfo);
 
@@ -311,9 +342,10 @@ int isDir(DirEntry *entry)
 //   - int: Index of the found directory entry, or -1 if not found or for invalid inputs.
 int findEntryInDir(DirEntry *directory, char *entryName)
 {
+    
     if (directory == NULL || entryName == NULL)
     {
-        printf("INVALID INPUT");
+        printf("INVALID INPUT\n");
         return -1; // Error code for invalid inputs
     }
 
@@ -326,7 +358,6 @@ int findEntryInDir(DirEntry *directory, char *entryName)
             return i; // Return the index of the found directory entry
         }
     }
-
     return -1; // Return -1 if the entry is not found in the directory
 }
 
@@ -379,23 +410,36 @@ int findNextAvailableEntryInDir(DirEntry *directory)
 //   - DirEntry *: Pointer to the loaded directory structure, or NULL for invalid inputs or failures.
 DirEntry *LoadDir(DirEntry *entry)
 {
+    printf("LoadDir running...\n");
     if (entry == NULL || entry->isDirectory == 0)
     {
         return NULL; // Return NULL if the entry is not a valid directory
     }
-
+    
     extent *dirExtent = entry->extentTable;
 
     // Calculate the number of blocks to read for the directory based on its extent information
     uint64_t blockSize = 512;
-    uint64_t totalBlocksToRead = dirExtent->count;
-    uint64_t startBlock = dirExtent->start;
+    // uint64_t totalBlocksToRead = dirExtent->count;
+    uint64_t totalBlocksToRead = entry->size/blockSize + 1;
+    uint64_t startBlock = &dirExtent->start;
+
+    printf("Blocks to read: %ld\n", entry->size/blockSize + 1);
+    printf("Start block: %ld\n", startBlock);
 
     // Calculate the size in bytes to read
     uint64_t sizeToRead = totalBlocksToRead * blockSize;
+    // printf("size to read: %ld\n", sizeToRead);
 
     // Allocate memory to store the directory structure
     DirEntry *directoryStructure = (DirEntry *)malloc(sizeToRead);
+
+    if (directoryStructure == NULL)
+    {
+        perror("Error allocation memory\n");
+        free(directoryStructure);
+        return NULL;
+    }
 
     // Read the directory structure from disk using LBAread
     uint64_t blocksRead = LBAread(directoryStructure, totalBlocksToRead, startBlock);
@@ -403,6 +447,7 @@ DirEntry *LoadDir(DirEntry *entry)
     // Perform error handling and return NULL in case of failure
     if (blocksRead != totalBlocksToRead)
     {
+        printf("Error occured with LBAread\n");
         free(directoryStructure); // Free allocated memory in case of failure
         return NULL;
     }

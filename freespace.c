@@ -84,6 +84,7 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     if (extentTable == NULL)
     {
         fprintf(stderr, "Memory allocation for extents failed\n");
+        free(extentTable);
         return NULL;
     }
 
@@ -170,6 +171,7 @@ int loadFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
     if (freeSpaceMap == NULL)
     {
         printf("FREE SPACE CALLOC FAILED");
+        free(freeSpaceMap);
         return -1;
     }
 
