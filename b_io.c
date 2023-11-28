@@ -192,5 +192,10 @@ int b_read (b_io_fd fd, char * buffer, int count)
 // Interface to Close the file	
 int b_close (b_io_fd fd)
 	{
+		if (fcbArray[fd].buff != NULL) {
+        free(fcbArray[fd].buff);
+        fcbArray[fd].buff = NULL;
+    } 
 
+		fcbArray[fd].filename = NULL;
 	}
