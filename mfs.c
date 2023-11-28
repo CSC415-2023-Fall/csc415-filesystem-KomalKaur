@@ -18,6 +18,7 @@
 // Function to create a new directory with the given pathname and mode
 int fs_mkdir(char *pathname, mode_t mode)
 {
+    printf("\nRunning mkdir...\n");
     // Allocate memory for path information
     ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
 
@@ -27,7 +28,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     // Check if parsing was successful
     if (retVal != 0)
     {
-        printf("Parse path failed");
+        printf("Parse path failed\n");
         free(pathInfo);
         return -1;
     }
@@ -35,7 +36,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     // Check if the directory already exists
     if (pathInfo->index != -1)
     {
-        printf("Directory Already Exists!\n");
+        printf("Directory Already Exists!!\n");
         free(pathInfo);
         return -1;
     }
@@ -66,7 +67,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     // Check for initialization errors
     if (startBlock == -1)
     {
-        printf("Error in initDirectory()");
+        printf("Error in initDirectory()\n");
         free(pathInfo);
         free(dot);
         return -1;
@@ -96,7 +97,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     free(pathInfo);
     free(dot);
 
-    printf("mkdir() success");
+    printf("mkdir() success\n");
     // Return success
     return 0;
 }
@@ -271,9 +272,24 @@ int fs_setcwd(char *pathname)
     // Free allocated memory after successfully setting the current working directory
     free(pathInfo);
     // Indicate success by returning 0
+
+    printf("cd succesful!\n");
     return 0;
 }
 
+
+/*
+Returns fdDir --> 
+    unsigned short  d_reclen    length of this record 
+	unsigned short	dirEntryPosition;	which directory entry position, like file pos 
+	DE *	directory;			Pointer to the loaded directory you want to iterate 
+	struct fs_diriteminfo * di;
+
+fs_diriteminfo --> 
+    unsigned short d_reclen;    length of this record 
+    unsigned char fileType;    
+    char d_name[256]; 
+*/
 fdDir *fs_opendir(const char *pathname)
 {
     // Allocate memory for directory info structure
@@ -301,7 +317,8 @@ fdDir *fs_opendir(const char *pathname)
     }
 
     // Parse the given pathname and store information in pathInfo
-    char *path = pathname;
+    char path[strlen(pathname)];
+    strcpy(path, pathname);
     int returnVal = parsePath(path, pathInfo);
 
     // Check if parsing was successful
@@ -405,4 +422,3 @@ int fs_closedir(fdDir *dirp)
     // Indicate success
     return 0;
 }
-
