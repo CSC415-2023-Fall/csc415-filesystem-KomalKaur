@@ -96,6 +96,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     free(pathInfo);
     free(dot);
 
+    printf("mkdir() success");
     // Return success
     return 0;
 }
@@ -185,7 +186,7 @@ int fs_stat(const char *path, struct fs_stat *buf)
 
     // Check if the path does not exist or is invalid
     if (pathInfo->index == -1 || pathInfo->lastElement == NULL)
-    {   
+    {
         // Calculate size in blocks
         int bSize = 512;
         int sizeInBlocks = (parent[0].size + bSize - 1) / bSize;
@@ -221,18 +222,15 @@ int fs_stat(const char *path, struct fs_stat *buf)
 
 // TODO: fix the last two functions in here
 
-
 // Function to get the current working directory and store it in the provided buffer
 // - just watching buffer size
 char *fs_getcwd(char *pathname, size_t size)
 {
-    // Use getcwd to retrieve the current working directory into the provided buffer
-    if (getcwd(pathname, size) == NULL)
-    {
-        // If getcwd fails, print an error message and return NULL
-        perror("getcwd");
-        return NULL;
+    if (cwd == NULL){
+        pathname == NULL;
     }
+
+    pathname = cwd->fileName;
 
     // Return the updated pathname buffer
     return pathname;
@@ -256,9 +254,156 @@ int fs_setcwd(char *pathname)
         return -1;
     }
 
+    DirEntry *parent = pathInfo->parent;
+    cwd = malloc(sizeof(DirEntry));
+
+    if (pathInfo->index == -1 || pathInfo->lastElement == NULL)
+    {
+        cwd = rootDir;
+    }
+    else
+    {
+        int index = findEntryInDir(parent, pathInfo->lastElement);
+        DirEntry *temp = &parent[index];
+        cwd = temp;
+    }
+
     // Free allocated memory after successfully setting the current working directory
     free(pathInfo);
-
     // Indicate success by returning 0
+
+    printf("cd succesful!\n");
+    return 0;
+}
+
+fdDir *fs_opendir(const char *pathname)
+{
+    // Allocate memory for directory info structure
+    fdDir *dirp = (fdDir *)malloc(sizeof(fdDir));
+
+    if (dirp == NULL)
+    {
+        perror("Error in allocating memory for directory info");
+        return NULL;
+    }
+
+    // Initialize directory info structure
+    dirp->d_reclen = sizeof(struct fs_diriteminfo);
+    dirp->dirEntryPosition = 0;
+    dirp->di = NULL; // No directory entry info to start with
+
+    // Allocate memory for path information
+    ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
+
+    if (pathInfo == NULL)
+    {
+        perror("Error in allocating memory for path information");
+        free(dirp); // Free allocated memory for directory info structure
+        return NULL;
+    }
+
+    // Parse the given pathname and store information in pathInfo
+    char *path = pathname;
+    int returnVal = parsePath(path, pathInfo);
+
+    // Check if parsing was successful
+    if (returnVal != 0)
+    {
+        printf("Parse path failed");
+        free(dirp);
+        free(pathInfo);
+        return NULL;
+    }
+
+    // Check if the path corresponds to a directory
+    if (pathInfo->index == -1 || pathInfo->lastElement == NULL || !isDir(&(pathInfo->parent[0])))
+    {
+        printf("Error: Not a directory");
+        free(dirp);
+        free(pathInfo);
+        return NULL;
+    }
+
+    // Load the directory structure based on the parsed path
+    DirEntry *loadedDir = LoadDir(&(pathInfo->parent[0]));
+
+    if (loadedDir == NULL)
+    {
+        printf("Error loading directory");
+        free(dirp);
+        free(pathInfo);
+        return NULL;
+    }
+
+    // Set the directory entry information in the directory info structure
+    dirp->di = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
+    dirp->di->d_reclen = sizeof(struct fs_diriteminfo);
+    dirp->di->fileType = 1; // Assuming it's always a directory
+    strcpy(dirp->di->d_name, pathInfo->lastElement);
+
+    // Free allocated memory for path information
+    free(pathInfo);
+
+    return dirp;
+}
+
+// struct fs_diriteminfo *fs_readdir(fdDir *dirp)
+// {
+//     // Check if the directory info structure is valid
+//     if (dirp == NULL || dirp->di == NULL)
+//     {
+//         printf("Invalid directory info structure");
+//         return NULL;
+//     }
+
+//     // Check if the directory is empty or if all entries have been read
+//     if (dirp->dirEntryPosition >= (dirp->parent[dirp->index]).size / sizeof(DirEntry))
+//     {
+//         // All entries have been read
+//         return NULL;
+//     }
+
+//     // Get the current directory entry position
+//     int currentPos = dirp->dirEntryPosition;
+
+//     // Increment the directory entry position for the next call
+//     (dirp->dirEntryPosition)++;
+
+//     // Get the current directory entry
+//     DirEntry *currentEntry = &(dirp->parent[dirp->index]);
+
+//     // Move to the next directory entry
+//     currentEntry = &(currentEntry[currentPos]);
+
+//     // Allocate memory for directory entry info structure
+//     struct fs_diriteminfo *diriteminfo = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
+
+//     if (diriteminfo == NULL)
+//     {
+//         perror("Error in allocating memory for directory entry info");
+//         return NULL;
+//     }
+
+//     // Set the directory entry info structure
+//     diriteminfo->d_reclen = sizeof(struct fs_diriteminfo);
+//     diriteminfo->fileType = currentEntry->isDirectory; // Assuming isDirectory is set correctly
+//     strcpy(diriteminfo->d_name, currentEntry->fileName);
+
+//     return diriteminfo;
+// }
+
+int fs_closedir(fdDir *dirp)
+{
+    // Check if the directory info structure is valid
+    if (dirp == NULL)
+    {
+        printf("Invalid directory info structure");
+        return -1;
+    }
+
+    // Free the memory allocated for the directory info structure
+    free(dirp);
+
+    // Indicate success
     return 0;
 }

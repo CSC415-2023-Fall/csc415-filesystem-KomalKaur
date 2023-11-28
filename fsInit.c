@@ -42,12 +42,18 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	{
 		loadFreeSpace(numberOfBlocks, blockSize);
 		loadRootDir();
-		loadCWD();
-		fs_mkdir("/Users", 1);
 
-		//testParsePath("/Users/Desktop");
+		// fs_mkdir("/Users", 1);
 
-		//initVCB(numberOfBlocks, blockSize);
+		// testParsePath("/Users/Desktop");
+		char *dir_buf = malloc(4096 + 1);
+		char *ptr;
+
+		fs_setcwd("/Users");
+		ptr = fs_getcwd(dir_buf, 4096);
+
+		free(dir_buf);
+		// initVCB(numberOfBlocks, blockSize);
 		return 0; // volume already is initalized
 	}
 	else

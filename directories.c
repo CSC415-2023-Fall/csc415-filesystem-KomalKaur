@@ -154,12 +154,6 @@ int loadRootDir()
     return 0;
 }
 
-int loadCWD()
-{
-    cwd = rootDir;
-
-    return 0;
-}
 
 // Function: parsePath
 // Description: Used to retrieve actual directory entries when given a path name.
@@ -313,7 +307,7 @@ int findEntryInDir(DirEntry *directory, char *entryName)
 {
     if (directory == NULL || entryName == NULL)
     {
-        printf("INVALID INPUT");
+        printf("l INPUT");
         return -1; // Error code for invalid inputs
     }
 
