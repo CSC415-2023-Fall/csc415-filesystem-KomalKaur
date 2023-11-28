@@ -31,10 +31,17 @@ typedef struct b_fcb
 	{
 	/** TODO add al the information you need in the file control block **/
 	char * buff;		//holds the open file buffer
-	int index;		//holds the current position in the buffer
+	int filePos;
+	int numOfBlocks;
+	int currBlock;
 	int buflen;		//holds how many valid bytes are in the buffer
+	char *filename;
+    int fileDescriptor;
+	int fileLength;
+    int flags;
 	} b_fcb;
-	
+ 
+
 b_fcb fcbArray[MAXFCBS];
 
 int startup = 0;	//Indicates that this has not been initialized
@@ -47,7 +54,7 @@ void b_init ()
 		{
 		fcbArray[i].buff = NULL; //indicates a free fcbArray
 		}
-		
+	
 	startup = 1;
 	}
 
@@ -86,8 +93,15 @@ b_io_fd b_open(char *filename, int flags)
     //TODO: handle opening the file 
 	
     fcbArray[returnFd].buff = (char *)malloc(B_CHUNK_SIZE);
-    fcbArray[returnFd].index = 0;
     fcbArray[returnFd].buflen = 0;
+	fcbArray[returnFd].filePos = 0;
+	fcbArray[returnFd].numOfBlocks;
+	fcbArray[returnFd].currBlock = 0;
+	fcbArray[returnFd].buflen = B_CHUNK_SIZE;		//holds how many valid bytes are in the buffer
+	fcbArray[returnFd].filename = filename;
+    fcbArray[returnFd].fileDescriptor = returnFd;
+	fcbArray[returnFd].fileLength;
+    fcbArray[returnFd].flags = flags;
 
     return returnFd; // all set
 }
@@ -104,9 +118,23 @@ int b_seek (b_io_fd fd, off_t offset, int whence)
 		{
 		return (-1); 					//invalid file descriptor
 		}
-		
-		
-	return (0); //Change this
+	
+	off_t newOffset;
+    switch (whence) {
+        case 0:
+            newOffset = offset;
+            break;
+        case 1:
+            newOffset = fcbArray[fd].filePos + offset;
+            break;
+        case 2:
+            newOffset = fcbArray[fd].fileLength + offset;
+            break;
+        default:
+            return -1;  // Invalid whence parameter
+    }
+
+	return (newOffset); //Change this
 	}
 
 
