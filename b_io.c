@@ -170,53 +170,7 @@ int b_read(b_io_fd fd, char *buffer, int count)
     int bytesRead = 0; // Variable to keep track of the number of bytes read
 
     // Part 1: Read from the current buffer
-    if (fcbArray[fd].buflen > 0)
-    {
-        int bytesToCopy = (count < fcbArray[fd].buflen) ? count : fcbArray[fd].buflen;
-        memcpy(buffer, fcbArray[fd].buff + fcbArray[fd].index, bytesToCopy);
-        fcbArray[fd].index += bytesToCopy;
-        fcbArray[fd].buflen -= bytesToCopy;
-        bytesRead += bytesToCopy;
-        count -= bytesToCopy;
-        buffer += bytesToCopy;
-    }
-
-    // Part 2: Read full block size chunks directly
-    while (count >= B_CHUNK_SIZE)
-    {
-        uint64_t blocksRead = LBAread(buffer, 1, fcbArray[fd].fi->location);
-
-        if (blocksRead != 1)
-        {
-            // Error reading from the file
-            return -1;
-        }
-
-        bytesRead += B_CHUNK_SIZE;
-        count -= B_CHUNK_SIZE;
-        buffer += B_CHUNK_SIZE;
-    }
-
-    // Part 3: Read the remaining bytes after fulfilling part 1 and part 2
-    if (count > 0)
-    {
-        // Refill the buffer and read the remaining bytes
-        uint64_t blocksRead = LBAread(fcbArray[fd].buff, 1, fcbArray[fd].fi->location);
-
-        if (blocksRead != 1)
-        {
-            // Error reading from the file
-            return -1;
-        }
-
-        int bytesToCopy = (count < B_CHUNK_SIZE) ? count : B_CHUNK_SIZE;
-        memcpy(buffer, fcbArray[fd].buff, bytesToCopy);
-        fcbArray[fd].index = bytesToCopy;
-        fcbArray[fd].buflen = B_CHUNK_SIZE - bytesToCopy;
-
-        bytesRead += bytesToCopy;
-    }
-
+    
     return bytesRead;
 }
 
