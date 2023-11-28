@@ -34,17 +34,20 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	printf("Initializing File System with %ld blocks with a block size of %ld\n\n", numberOfBlocks, blockSize);
 
 	struct vcb *tempVCB = (struct vcb *)malloc(blockSize);
+	struct fs_stat statbuf;
 
 	LBAread(tempVCB, 1, 0);
 
 	if (tempVCB->Signature == SIGNATURE)
 	{
-		loadMap(numberOfBlocks, blockSize);
+		loadFreeSpace(numberOfBlocks, blockSize);
 		loadRootDir();
 		loadCWD();
-
 		fs_mkdir("/Users", 1);
 
+		//testParsePath("/Users/Desktop");
+
+		//initVCB(numberOfBlocks, blockSize);
 		return 0; // volume already is initalized
 	}
 	else
@@ -60,5 +63,6 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 void exitFileSystem()
 {
 	free(rootDir);
+	free(freeSpaceMap);
 	printf("System exiting\n");
 }
