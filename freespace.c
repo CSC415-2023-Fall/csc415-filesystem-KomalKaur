@@ -160,6 +160,31 @@ extent *allocateBlocks(int numBlocks, int minBlocksInExtent)
     return extentTable;
 }
 
+int freeBlocks(int startBlock, int count) {
+    // Ensure that the range to free is within the valid block indices
+    if (startBlock < 0 || startBlock + count > 19531) {
+        fprintf(stderr, "Invalid block range for freeing\n");
+        return -1;
+    }
+
+    // Mark the specified range of blocks as free
+    for (int i = startBlock; i < startBlock + count; ++i) {
+        clearBit(i);
+    }
+
+    // Write the updated map to disk after freeing blocks
+    int blocksWritten = LBAwrite(freeSpaceMap, 5, 1);
+
+    // Check if writing to disk was successful
+    if (blocksWritten != 5) {
+        fprintf(stderr, "Error writing blocks to disk\n");
+        return -1;
+    }
+
+    return 0;  // Successfully freed blocks
+}
+
+
 int loadFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
 {
     int sizeOfMapBytes = 2561;

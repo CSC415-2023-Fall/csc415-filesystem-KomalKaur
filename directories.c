@@ -62,14 +62,16 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     // Initialize directory entries with default values
     for (int i = 0; i < actualDirEntries; ++i)
     {
-        directoryEntries[i].fileName[0] = '\0';
-        directoryEntries[i].size = 0;
+
+        directoryEntries[i].fileName[0] = '\0'; // Ensure the string is initially empty
+        strcpy(directoryEntries[i].fileName, "-1");
         directoryEntries[i].extentTable = NULL;
         directoryEntries[i].lastModified = 0;
         directoryEntries[i].lastAccessed = 0;
         directoryEntries[i].timeCreated = 0;
         directoryEntries[i].isDirectory = 0;
         directoryEntries[i].directoryStartBlock = -1;
+        directoryEntries[i].directoryBlockCount = -1;
     }
 
     time_t t = time(NULL);
@@ -83,6 +85,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
     directoryEntries[0].lastModified = t;
     directoryEntries[0].extentTable = allocateBlocks(rootDirSizeBlocks, rootDirSizeBlocks);
     directoryEntries[0].directoryStartBlock = directoryEntries[0].extentTable->start;
+    directoryEntries[0].directoryBlockCount = rootDirSizeBlocks;
 
     // return start block of where directory entries start on disk
     int startBlock = directoryEntries[0].extentTable->start;
@@ -103,6 +106,7 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].lastModified = firstEntryPtr->lastModified;
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
         directoryEntries[1].directoryStartBlock = firstEntryPtr->directoryStartBlock;
+        directoryEntries[1].directoryBlockCount = firstEntryPtr->directoryBlockCount;
     }
     else if (parent == NULL)
     {
@@ -117,8 +121,9 @@ int initDirectory(int initialDirEntries, uint64_t blockSize, DirEntry *parent)
         directoryEntries[1].lastModified = firstEntryPtr->lastModified;
         directoryEntries[1].extentTable = firstEntryPtr->extentTable;
         directoryEntries[1].directoryStartBlock = firstEntryPtr->directoryStartBlock;
+        directoryEntries[1].directoryBlockCount = firstEntryPtr->directoryBlockCount;
     }
-
+    
     // write it to disk
     LBAwrite(directoryEntries, rootDirSizeBlocks, startBlock);
 
@@ -153,7 +158,6 @@ int loadRootDir()
     LBAread(rootDir, 6, 6);
     return 0;
 }
-
 
 // Function: parsePath
 // Description: Used to retrieve actual directory entries when given a path name.
@@ -257,7 +261,7 @@ int parsePath(char *pathname, ppInfo *ppi)
     return 0;
 }
 
-void testParsePath(char *pathname)
+void testLoadDir(char *pathname)
 {
     ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
 
@@ -266,16 +270,38 @@ void testParsePath(char *pathname)
     if (retVal != 0)
     {
         printf("Parse path failed");
+        free(pathInfo);
+        return;
     }
 
-    DirEntry *parent = malloc(sizeof(DirEntry));
+    DirEntry *parent = pathInfo->parent;
 
-    parent = pathInfo->parent;
+    int index = findEntryInDir(parent, pathInfo->lastElement);
 
-    printf("Parent: %s\n", parent->fileName);
+    int startBlock = parent[index].directoryStartBlock;
+    int count = parent[index].directoryBlockCount;
 
-    printf("INDEX: %d\n", pathInfo->index);
-    printf("Last Element: %s\n", pathInfo->lastElement);
+    printf("start Block: %d\n", startBlock);
+    printf("directoryBlockCount: %d\n", count);
+
+    DirEntry *temp = LoadDir(&(parent[index]));
+
+    if (temp != NULL)
+    {
+        // Access and print information about each entry in the loaded directory
+        for (int i = 0; i < 2; ++i)
+        {
+            printf("Entry %d: File Name: %s, Size: %ld\n", i, temp[i].fileName, temp[i].size);
+        }
+
+        free(temp);
+    }
+    else
+    {
+        printf("Failed to load directory structure.\n");
+    }
+
+    free(pathInfo);
 }
 
 // Function: isDir
@@ -356,7 +382,7 @@ int findNextAvailableEntryInDir(DirEntry *directory)
 
     for (int i = 0; i < numEntries; i++)
     {
-        if (entry[i].fileName[0] == '\0')
+        if (strcmp(entry[i].fileName, "-1") == 0)
         {
             return i; // Return the index of the first available entry
         }
@@ -378,13 +404,12 @@ DirEntry *LoadDir(DirEntry *entry)
         return NULL; // Return NULL if the entry is not a valid directory
     }
 
-    extent *dirExtent = entry->extentTable;
-
     // Calculate the number of blocks to read for the directory based on its extent information
-    uint64_t blockSize = 512;
-    uint64_t totalBlocksToRead = dirExtent->count;
-    uint64_t startBlock = dirExtent->start;
+    int blockSize = 512;
+    int totalBlocksToRead = entry->directoryBlockCount;
+    int startBlock = entry->directoryStartBlock;
 
+    printf("Start Block in load: %d", totalBlocksToRead);
     // Calculate the size in bytes to read
     uint64_t sizeToRead = totalBlocksToRead * blockSize;
 
@@ -392,15 +417,30 @@ DirEntry *LoadDir(DirEntry *entry)
     DirEntry *directoryStructure = (DirEntry *)malloc(sizeToRead);
 
     // Read the directory structure from disk using LBAread
-    uint64_t blocksRead = LBAread(directoryStructure, totalBlocksToRead, startBlock);
+    uint64_t blocksRead = LBAread(directoryStructure, totalBlocksToRead, 13);
 
     // Perform error handling and return NULL in case of failure
     if (blocksRead != totalBlocksToRead)
     {
+        printf("RETURNING NULL");
         free(directoryStructure); // Free allocated memory in case of failure
         return NULL;
     }
 
+    if (directoryStructure != NULL)
+    {
+        // Access and print information about each entry in the loaded directory
+        for (int i = 0; i < 3; ++i)
+        {
+            printf("Entry %d: File Name: %s, Size: %ld\n", i, directoryStructure[i].fileName, directoryStructure[i].size);
+        }
+    }
+    else
+    {
+        printf("Failed to load directory structure.\n");
+    }
+
+    printf("LoadDir Success\n");
     // Returning the directory structure
     return directoryStructure;
 }

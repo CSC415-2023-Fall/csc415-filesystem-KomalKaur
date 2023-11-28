@@ -40,6 +40,7 @@ typedef struct {
     char isDirectory;
     mode_t permissions;
     int directoryStartBlock;
+    int directoryBlockCount;
 } DirEntry;
 
 
