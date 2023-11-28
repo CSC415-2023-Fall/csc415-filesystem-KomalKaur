@@ -35,7 +35,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     // Check if the directory already exists
     if (pathInfo->index != -1)
     {
-        printf("Directory Already Exists!!");
+        printf("Directory Already Exists!\n");
         free(pathInfo);
         return -1;
     }
@@ -271,8 +271,6 @@ int fs_setcwd(char *pathname)
     // Free allocated memory after successfully setting the current working directory
     free(pathInfo);
     // Indicate success by returning 0
-
-    printf("cd succesful!\n");
     return 0;
 }
 
@@ -407,3 +405,4 @@ int fs_closedir(fdDir *dirp)
     // Indicate success
     return 0;
 }
+
