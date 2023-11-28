@@ -277,6 +277,19 @@ int fs_setcwd(char *pathname)
     return 0;
 }
 
+
+/*
+Returns fdDir --> 
+    unsigned short  d_reclen    length of this record 
+	unsigned short	dirEntryPosition;	which directory entry position, like file pos 
+	DE *	directory;			Pointer to the loaded directory you want to iterate 
+	struct fs_diriteminfo * di;
+
+fs_diriteminfo --> 
+    unsigned short d_reclen;    length of this record 
+    unsigned char fileType;    
+    char d_name[256]; 
+*/
 fdDir *fs_opendir(const char *pathname)
 {
     // Allocate memory for directory info structure
