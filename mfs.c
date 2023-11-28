@@ -28,7 +28,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     // Check if parsing was successful
     if (retVal != 0)
     {
-        printf("Parse path failed");
+        printf("Parse path failed\n");
         free(pathInfo);
         return -1;
     }
@@ -36,7 +36,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     // Check if the directory already exists
     if (pathInfo->index != -1)
     {
-        printf("Directory Already Exists!!");
+        printf("Directory Already Exists!!\n");
         free(pathInfo);
         return -1;
     }
@@ -67,7 +67,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     // Check for initialization errors
     if (startBlock == -1)
     {
-        printf("Error in initDirectory()");
+        printf("Error in initDirectory()\n");
         free(pathInfo);
         free(dot);
         return -1;
@@ -97,7 +97,7 @@ int fs_mkdir(char *pathname, mode_t mode)
     free(pathInfo);
     free(dot);
 
-    printf("mkdir() success");
+    printf("mkdir() success\n");
     // Return success
     return 0;
 }
@@ -496,13 +496,13 @@ fs_diriteminfo -->
 // }
 
 // int fs_closedir(fdDir *dirp)
-{
-    printf("\nRunning closedir...\n");
-    if (dirp != NULL)
-    {
-        free(dirp->di);
-        free(dirp);  
-        return 0;
-    }
-    return -1;
-}
+// {
+//     printf("\nRunning closedir...\n");
+//     if (dirp != NULL)
+//     {
+//         free(dirp->di);
+//         free(dirp);  
+//         return 0;
+//     }
+//     return -1;
+// }

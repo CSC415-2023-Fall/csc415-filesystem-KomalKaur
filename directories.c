@@ -234,6 +234,8 @@ int parsePath(char *pathname, ppInfo *ppi)
     // token2 = strtok_r(NULL, delim, &saveptr);
     // printf("token2: %s\n", token2);
     printf("4\n");
+    printf("parent for FEID: %s\n", parent->fileName);
+    printf("token1 for FEID: %s\n", token1);
 
     while (token1 != NULL)
     {
@@ -254,12 +256,14 @@ int parsePath(char *pathname, ppInfo *ppi)
         // directory was not found in the parent
         if (index == -1)
         {
+            printf("Directory not found!\n");
             return -2;
         }
 
         // check if dir is a directory
         if (!isDir(&parent[index]))
         {
+            printf("This is not a directory!\n");
             return -2;
         }
 
@@ -296,7 +300,7 @@ void testParsePath(char *pathname)
 
     if (retVal != 0)
     {
-        printf("Parse path failed");
+        printf("Parse path failed\n");
     }
 
     DirEntry *parent = malloc(sizeof(DirEntry));
@@ -336,7 +340,7 @@ int isDir(DirEntry *entry)
 //   - int: Index of the found directory entry, or -1 if not found or for invalid inputs.
 int findEntryInDir(DirEntry *directory, char *entryName)
 {
-    
+    printf("FindEntryInDir running...\n");   
     if (directory == NULL || entryName == NULL)
     {
         printf("INVALID INPUT");
@@ -349,9 +353,11 @@ int findEntryInDir(DirEntry *directory, char *entryName)
     {
         if (strcmp(directory[i].fileName, entryName) == 0)
         {
+            printf("Found directory!\n");
             return i; // Return the index of the found directory entry
         }
     }
+    printf("FEID not found :(\n");
     return -1; // Return -1 if the entry is not found in the directory
 }
 

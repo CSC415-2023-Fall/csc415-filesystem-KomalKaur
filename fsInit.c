@@ -43,7 +43,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		loadFreeSpace(numberOfBlocks, blockSize);
 		loadRootDir();
 
-		// fs_mkdir("/Users", 1);
+		//fs_mkdir("/Users", 1);
 
 		testParsePath("/Users/Desktop");
 
