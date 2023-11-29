@@ -7,9 +7,8 @@
  * File: mfs.c
  *
  * Description:
- *	This is the file system interface.
- *	This is the interface needed by the driver to interact with
- *	the filesystem.
+ * This is the implementation of the functions needed by the
+ * driver to interact with the filesystem.
  *
  **************************************************************/
 
@@ -18,7 +17,6 @@
 // Function to create a new directory with the given pathname and mode
 int fs_mkdir(char *pathname, mode_t mode)
 {
-    printf("\nRunning mkdir...\n");
     // Allocate memory for path information
     ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
 
@@ -62,8 +60,7 @@ int fs_mkdir(char *pathname, mode_t mode)
 
     // Initialize a new directory and get its start block
     int startBlock = initDirectory(20, 512, parent);
-    printf("START BLOCK IN MKDIR(): %d\n", startBlock);
-
+    
     // Check for initialization errors
     if (startBlock == -1)
     {
@@ -85,6 +82,8 @@ int fs_mkdir(char *pathname, mode_t mode)
     parent[index].lastModified = dot->lastModified;
     parent[index].timeCreated = dot->timeCreated;
     parent[index].directoryStartBlock = dot->directoryStartBlock;
+    parent[index].directoryBlockCount = dot->directoryBlockCount;
+    
 
     // Calculate the number of blocks needed
     int bSize = 512;
@@ -93,11 +92,12 @@ int fs_mkdir(char *pathname, mode_t mode)
     // Write the updated parent directory back to disk
     LBAwrite(parent, numBlocks, parentStartBlock);
 
+    fs_setcwd(pathname);
+
     // Free allocated memory
     free(pathInfo);
     free(dot);
 
-    printf("mkdir() success\n");
     // Return success
     return 0;
 }
@@ -159,6 +159,114 @@ int fs_isFile(char *pathname)
     free(pathInfo);      // Free allocated memory for path information
     return !isDirectory; // Return 1 if it's a directory, 0 if not
 };
+
+int fs_rmdir(char *pathname) {
+    // Allocate memory for path information
+    ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
+
+    // Parse the given pathname and store information in pathInfo
+    int retVal = parsePath(pathname, pathInfo);
+
+    // Check if parsing was successful
+    if (retVal != 0) {
+        printf("Parse path failed\n");
+        free(pathInfo);
+        return -1;
+    }
+
+    DirEntry *parent = pathInfo->parent;
+    int index = pathInfo->index;
+
+    // Check if the directory exists
+    if (pathInfo->index == -1 || pathInfo->lastElement == NULL) {
+        printf("Directory not found\n");
+        free(pathInfo);
+        return -1;
+    }
+
+
+    // Check if the entry to remove is a directory
+    if (!isDir(&parent[index])) {
+        printf("Not a directory\n");
+        free(pathInfo);
+        return -1;
+    }   
+
+    strcpy(parent[index].fileName, "-1");
+    parent[index].extentTable = NULL;
+
+    // Calculate the number of blocks used by the directory
+    int bSize = 512;
+    int numBlocks = (parent[index].size + bSize - 1) / bSize;
+
+    // Set the corresponding bits in the free space map as free
+    freeBlocks(parent[index].directoryStartBlock, numBlocks);
+
+    // Update the parent directory on disk
+    int parentStartBlock = pathInfo->parent->directoryStartBlock;
+
+    int parentCount = pathInfo->parent->directoryBlockCount;
+
+    LBAwrite(pathInfo->parent, parentCount, parentStartBlock);
+
+    // Free allocated memory
+    free(pathInfo);
+    return 0;
+}
+
+int fs_delete(char* filename) {
+    // Allocate memory for path information
+    ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
+
+    // Parse the given filename and store information in pathInfo
+    int retVal = parsePath(filename, pathInfo);
+
+    // Check if parsing was successful
+    if (retVal != 0) {
+        printf("Parse path failed\n");
+        free(pathInfo);
+        return -1;
+    }
+
+    DirEntry *parent = pathInfo->parent;
+    int index = pathInfo->index;
+
+    // Check if the file exists
+    if (pathInfo->index == -1 || pathInfo->lastElement == NULL) {
+        printf("File not found\n");
+        free(pathInfo);
+        return -1;
+    }
+
+    // Check if the entry to remove is a file
+    if (isDir(&parent[index])) {
+        printf("Not a file\n");
+        free(pathInfo);
+        return -1;
+    }
+
+    // Mark the entry as available
+    strcpy(parent[index].fileName, "-1");
+    parent[index].extentTable = NULL;
+
+    // Calculate the number of blocks used by the file
+    int bSize = 512;
+    int numBlocks = (parent[index].size + bSize - 1) / bSize;
+
+    // Set the corresponding bits in the free space map as free
+    freeBlocks(parent[index].directoryStartBlock, numBlocks);
+
+    // Update the parent directory on disk
+    int parentStartBlock = pathInfo->parent->directoryStartBlock;
+
+    int parentCount = pathInfo->parent->directoryBlockCount;
+
+    LBAwrite(pathInfo->parent, parentCount, parentStartBlock);
+
+    // Free allocated memory
+    free(pathInfo);
+    return 0;
+}
 
 // Function to retrieve file or directory information
 int fs_stat(const char *path, struct fs_stat *buf)
@@ -272,8 +380,6 @@ int fs_setcwd(char *pathname)
     // Free allocated memory after successfully setting the current working directory
     free(pathInfo);
     // Indicate success by returning 0
-
-    printf("cd succesful!\n");
     return 0;
 }
 

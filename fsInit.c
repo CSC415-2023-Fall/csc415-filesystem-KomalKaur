@@ -13,7 +13,9 @@
  *
  * Description: Main driver for file system assignment.
  *
- * This file is where you will start and initialize your system
+ * This file is we initialize all the necessary structures for 
+ * the file system only if it is a new volume otherwise just 
+ * load the structures from disk.
  *
  **************************************************************/
 
@@ -53,10 +55,10 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		// char *dir_buf = malloc(4096 + 1);
 		// char *ptr;
 
-		// fs_setcwd("/Users");
-		// ptr = fs_getcwd(dir_buf, 4096);
+		fs_setcwd("/Users");
+		ptr = fs_getcwd(dir_buf, 4096);
 
-		// free(dir_buf);
+		free(dir_buf);
 		// initVCB(numberOfBlocks, blockSize);
 		return 0; // volume already is initalized
 	}

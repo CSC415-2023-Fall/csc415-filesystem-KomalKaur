@@ -42,7 +42,8 @@ int loadFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize);
 // allocateblocks is how you obtain disk blocks
 extent * allocateBlocks(int numBlocks, int minBlocksInExtent);
 
-void freeBlocks(int start, int count);
+int freeBlocks (int startBlock, int count);
+
 void setBit(int n);  // set a specific bit to used
 void clearBit(int n);  // set a specific bit to free
 int checkBit(int n);  // check if bit is used or free
