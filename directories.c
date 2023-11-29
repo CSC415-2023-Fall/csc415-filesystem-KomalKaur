@@ -289,6 +289,7 @@ int parsePath(char *pathname, ppInfo *ppi)
 
 void testParsePath(char *pathname)
 {
+    printf("Testing PasrePath...\n");
     ppInfo *pathInfo = (ppInfo *)malloc(sizeof(ppInfo));
     if (pathInfo == NULL)
     {
@@ -311,6 +312,7 @@ void testParsePath(char *pathname)
 
     printf("INDEX: %d\n", pathInfo->index);
     printf("Last Element: %s\n", pathInfo->lastElement);
+    printf("ParsePath Sucessful!\n");
 }
 
 // Function: isDir
@@ -357,7 +359,7 @@ int findEntryInDir(DirEntry *directory, char *entryName)
             return i; // Return the index of the found directory entry
         }
     }
-    printf("FEID not found :(\n");
+    printf("Not found :(\n");
     return -1; // Return -1 if the entry is not found in the directory
 }
 
@@ -452,6 +454,7 @@ DirEntry *LoadDir(DirEntry *entry)
         return NULL;
     }
 
+    printf("LoadDir Successful!\n");
     // Returning the directory structure
     return directoryStructure;
 }

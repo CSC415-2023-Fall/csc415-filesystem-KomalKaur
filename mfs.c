@@ -281,8 +281,8 @@ int fs_setcwd(char *pathname)
 /*
 Returns fdDir --> 
     unsigned short  d_reclen    length of this record 
-	unsigned short	dirEntryPosition;	which directory entry position, like file pos 
-	DE *	directory;			Pointer to the loaded directory you want to iterate 
+	unsigned short	dirEntryPosition;	which directory entry position
+	DE *	directory;			Pointer to the loaded directory we iterate 
 	struct fs_diriteminfo * di;
 
 fs_diriteminfo --> 
@@ -350,6 +350,7 @@ fdDir *fs_opendir(const char *pathname)
         return NULL;
     }
 
+    dirp->directory = loadedDir;
     // Set the directory entry information in the directory info structure
     dirp->di = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
     dirp->di->d_reclen = sizeof(struct fs_diriteminfo);
@@ -359,9 +360,21 @@ fdDir *fs_opendir(const char *pathname)
     // Free allocated memory for path information
     free(pathInfo);
 
-    return dirp;
+    printf("~Path Info~\n");
+    printf("Index: %d\n", pathInfo->index);
+
+    printf("\n~dirp information~\n");
+    printf("dirEntryPosition: %d\n", dirp->dirEntryPosition);
+    printf("directory: %s\n", dirp->directory->fileName);
+    printf("length:%d\n", dirp->d_reclen);
+    return dirp;       
 }
 
+/* 
+Returns a pointer to a DirEntry structure representing the 
+    next directory entry in the directory stream pointed to by dirp
+Returns NULL on reaching the end of the directory stream or if an error occurred.
+*/
 // struct fs_diriteminfo *fs_readdir(fdDir *dirp)
 // {
 //     // Check if the directory info structure is valid
@@ -391,24 +404,26 @@ fdDir *fs_opendir(const char *pathname)
 //     currentEntry = &(currentEntry[currentPos]);
 
 //     // Allocate memory for directory entry info structure
-//     struct fs_diriteminfo *diriteminfo = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
+//     struct fs_diriteminfo *nextDir = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
 
-//     if (diriteminfo == NULL)
+//     if (nextDir == NULL)
 //     {
 //         perror("Error in allocating memory for directory entry info");
 //         return NULL;
 //     }
 
 //     // Set the directory entry info structure
-//     diriteminfo->d_reclen = sizeof(struct fs_diriteminfo);
-//     diriteminfo->fileType = currentEntry->isDirectory; // Assuming isDirectory is set correctly
-//     strcpy(diriteminfo->d_name, currentEntry->fileName);
+//     nextDir->d_reclen = sizeof(struct fs_diriteminfo);
+//     nextDir->fileType = currentEntry->isDirectory; // Assuming isDirectory is set correctly
+//     strcpy(nextDir->d_name, currentEntry->fileName);
 
-//     return diriteminfo;
+//     return nextDir;
 // }
 
 int fs_closedir(fdDir *dirp)
 {
+    printf("\nRunning closedir...\n");
+
     // Check if the directory info structure is valid
     if (dirp == NULL)
     {
@@ -417,6 +432,7 @@ int fs_closedir(fdDir *dirp)
     }
 
     // Free the memory allocated for the directory info structure
+    free(dirp->di);
     free(dirp);
 
     // Indicate success

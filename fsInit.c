@@ -43,9 +43,11 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		loadFreeSpace(numberOfBlocks, blockSize);
 		loadRootDir();
 
-		//fs_mkdir("/Users", 1);
+		fs_mkdir("/Users/Desktop", 1);
 
-		testParsePath("/Users/Desktop");
+		//testParsePath("/Users/Desktop");
+
+		//fs_closedir(fs_opendir("/Users"));
 
 		/*Testing GETCWD*/
 		// char *dir_buf = malloc(4096 + 1);
