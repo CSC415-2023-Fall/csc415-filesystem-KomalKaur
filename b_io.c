@@ -32,10 +32,17 @@ typedef struct b_fcb
 	{
 	/** TODO add al the information you need in the file control block **/
 	char * buff;		//holds the open file buffer
-	int index;		//holds the current position in the buffer
+	int filePos;
+	int numOfBlocks;
+	int currBlock;
 	int buflen;		//holds how many valid bytes are in the buffer
+	char *filename;
+    int fileDescriptor;
+	int fileLength;
+    int flags;
 	} b_fcb;
-	
+ 
+
 b_fcb fcbArray[MAXFCBS];
 
 int startup = 0;	//Indicates that this has not been initialized
@@ -48,7 +55,7 @@ void b_init ()
 		{
 		fcbArray[i].buff = NULL; //indicates a free fcbArray
 		}
-		
+	
 	startup = 1;
 	}
 
@@ -86,9 +93,16 @@ b_io_fd b_open(char *filename, int flags)
 
     //TODO: handle opening the file 
 	
-    fcbArray[fd].buff = (char *)malloc(B_CHUNK_SIZE);
-    fcbArray[fd].index = 0;
-    fcbArray[fd].buflen = 0;
+    fcbArray[returnFd].buff = (char *)malloc(B_CHUNK_SIZE);
+    fcbArray[returnFd].buflen = 0;
+	fcbArray[returnFd].filePos = 0;
+	fcbArray[returnFd].numOfBlocks;
+	fcbArray[returnFd].currBlock = 0;
+	fcbArray[returnFd].buflen = B_CHUNK_SIZE;		//holds how many valid bytes are in the buffer
+	fcbArray[returnFd].filename = filename;
+    fcbArray[returnFd].fileDescriptor = returnFd;
+	fcbArray[returnFd].fileLength;
+    fcbArray[returnFd].flags = flags;
 
     return fd; // all set
 }
@@ -105,9 +119,23 @@ int b_seek (b_io_fd fd, off_t offset, int whence)
 		{
 		return (-1); 					//invalid file descriptor
 		}
-		
-		
-	return (0); //Change this
+	
+	off_t newOffset;
+    switch (whence) {
+        case 0:
+            newOffset = offset;
+            break;
+        case 1:
+            newOffset = fcbArray[fd].filePos + offset;
+            break;
+        case 2:
+            newOffset = fcbArray[fd].fileLength + offset;
+            break;
+        default:
+            return -1;  // Invalid whence parameter
+    }
+
+	return (newOffset); //Change this
 	}
 
 
@@ -177,21 +205,12 @@ int b_read(b_io_fd fd, char *buffer, int count)
 
 	
 // Interface to Close the file	
-int b_close(b_io_fd fd)
-{
-    if (startup == 0)
-        b_init(); // Initialize our system
+int b_close (b_io_fd fd)
+	{
+		if (fcbArray[fd].buff != NULL) {
+        free(fcbArray[fd].buff);
+        fcbArray[fd].buff = NULL;
+    } 
 
-    // check that fd is between 0 and (MAXFCBS-1)
-    if ((fd < 0) || (fd >= MAXFCBS))
-    {
-        return (-1); // invalid file descriptor
-    }
-
-    // TODO: Perform any necessary cleanup for the file descriptor
-
-    free(fcbArray[fd].buff); // Free the memory allocated for the file buffer
-    fcbArray[fd].buff = NULL; // Mark the FCB as free
-
-    return 0; // Success
-}
+		fcbArray[fd].filename = NULL;
+	}
