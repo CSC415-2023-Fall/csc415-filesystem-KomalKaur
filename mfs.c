@@ -403,7 +403,8 @@ fdDir *fs_opendir(const char *pathname)
 
     if (dirp == NULL)
     {
-        perror("Error in allocating memory for directory info");
+        perror("Error in allocating memory for directory info\n");
+        free(dirp);
         return NULL;
     }
 
@@ -417,7 +418,7 @@ fdDir *fs_opendir(const char *pathname)
 
     if (pathInfo == NULL)
     {
-        perror("Error in allocating memory for path information");
+        perror("Error in allocating memory for path information\n");
         free(dirp); // Free allocated memory for directory info structure
         return NULL;
     }
@@ -430,7 +431,7 @@ fdDir *fs_opendir(const char *pathname)
     // Check if parsing was successful
     if (returnVal != 0)
     {
-        printf("Parse path failed");
+        printf("Parse path failed\n");
         free(dirp);
         free(pathInfo);
         return NULL;
@@ -439,7 +440,7 @@ fdDir *fs_opendir(const char *pathname)
     // Check if the path corresponds to a directory
     if (pathInfo->index == -1 || pathInfo->lastElement == NULL || !isDir(&(pathInfo->parent[0])))
     {
-        printf("Error: Not a directory");
+        printf("Error: Not a directory\n");
         free(dirp);
         free(pathInfo);
         return NULL;
@@ -450,13 +451,20 @@ fdDir *fs_opendir(const char *pathname)
 
     if (loadedDir == NULL)
     {
-        printf("Error loading directory");
+        printf("Error loading directory\n");
         free(dirp);
         free(pathInfo);
         return NULL;
     }
 
-    dirp->directory = loadedDir;
+    dirp->directory = malloc(sizeof(DirEntry));
+    if (dirp->directory == NULL)
+    {
+        printf("Error allocating memory to dirp->directory\n");
+        free(dirp->directory);
+        return NULL;
+    }
+
     // Set the directory entry information in the directory info structure
     dirp->di = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
     dirp->di->d_reclen = sizeof(struct fs_diriteminfo);
@@ -466,13 +474,7 @@ fdDir *fs_opendir(const char *pathname)
     // Free allocated memory for path information
     free(pathInfo);
 
-    printf("~Path Info~\n");
-    printf("Index: %d\n", pathInfo->index);
-
-    printf("\n~dirp information~\n");
-    printf("dirEntryPosition: %d\n", dirp->dirEntryPosition);
-    printf("directory: %s\n", dirp->directory->fileName);
-    printf("length:%d\n", dirp->d_reclen);
+    
     return dirp;       
 }
 
@@ -526,6 +528,44 @@ Returns NULL on reaching the end of the directory stream or if an error occurred
 //     return nextDir;
 // }
 
+/* Aleia's Version of ReadDir*/
+// struct fs_diriteminfo *fs_readdir(fdDir *dirp)
+// {
+//     printf("\nRunning readdir...\n");
+//     if (dirp == NULL)
+//     {
+//         printf("Error: Nothing to read.\n");
+//         return NULL;
+//     }
+
+//     dirp->di = malloc(sizeof(struct fs_diriteminfo));
+
+//     if (dirp->di  == NULL)
+//     {
+//         printf("Error allocating memory for iteminfo\n");
+//         free(dirp->di );
+//         return NULL;
+//     }
+
+//     // The current position needs to be less than the total entries
+//     if (dirp->dirEntryPosition < dirp->d_reclen)
+//     {
+//         //Get the current directory information
+//         dirp->directory[dirp->dirEntryPosition].fileName;
+
+//         dirp->di->d_reclen = dirp->d_reclen;
+//         dirp->di->fileType = 1; 
+//         strncpy(dirp->di->d_name, dirp->directory[dirp->dirEntryPosition].fileName, sizeof(dirp->di->d_name) - 1);
+//         dirp->di->d_name[sizeof(dirp->di->d_name) - 1] = '\0'; // Null terminator
+
+//         dirp->dirEntryPosition++; // Increment for the next call
+//         return dirp->di;
+//     }
+
+//     return NULL;
+
+// }
+
 int fs_closedir(fdDir *dirp)
 {
     printf("\nRunning closedir...\n");
@@ -544,100 +584,3 @@ int fs_closedir(fdDir *dirp)
     // Indicate success
     return 0;
 }
-
-/*
-Returns fdDir --> 
-    unsigned short  d_reclen    length of this record 
-	unsigned short	dirEntryPosition;	which directory entry position, like file pos 
-	DE *	directory;			Pointer to the loaded directory you want to iterate 
-	struct fs_diriteminfo * di;
-
-fs_diriteminfo --> 
-    unsigned short d_reclen;    length of this record 
-    unsigned char fileType;    
-    char d_name[256]; 
-*/
-// fdDir * fs_opendir(const char *pathname) 
-// {
-//     printf("\nRunning fs_opendir...\n");
-
-//     ppInfo *pathInfo = malloc(sizeof(ppInfo));
-
-//     if (pathInfo == NULL)
-//     {
-//         printf("Error allocating memory for pathInfo\n");
-//         free(pathInfo);
-//         return NULL;
-//     }
-
-//     char path[strlen(pathname)];
-//     strcpy(path, pathname);
-//     printf("path is %s\n", path);
-
-//     int retVal = parsePath(path, pathInfo);
-
-//     if (retVal != 0)
-//     {
-//         printf("Error occured with the parsePath!\n");
-//         free(pathInfo);
-//         return NULL;
-//     }
-
-//     fdDir * dirp = malloc(sizeof(fdDir));
-    
-//     if (dirp == NULL)
-//     {
-//         printf("Error allocating memory for fdDir\n");
-//         free(dirp);
-//         return NULL;
-//     }
-
-//     dirp->dirEntryPosition = 0;
-//     dirp->directory = pathInfo->parent;
-//     dirp->d_reclen = dirp->directory->size; 
-//     dirp->di = NULL; /* Pointer to the structure you return from read */
-
-//     printf("~Path Info~\n");
-//     printf("Index: %d\n", pathInfo->index);
-
-//     printf("\n~dirp information~\n");
-//     printf("dirEntryPosition: %d\n", dirp->dirEntryPosition);
-//     //printf("directory: %s\n", dirp->directory);
-//     printf("length:%d\n", dirp->d_reclen);
-//     return dirp;       
-// }
-
-// // 
-// struct fs_diriteminfo *fs_readdir(fdDir *dirp)
-// {
-//     printf("\nRunning readdir...\n");
-//     if (dirp == NULL)
-//     {
-//         printf("Error: Nothing to read.\n");
-//         return NULL;
-//     }
-
-//     struct fs_diriteminfo * iteminfo = malloc(sizeof(struct fs_diriteminfo));
-
-//     if (iteminfo == NULL)
-//     {
-//         printf("Error allocating memory for iteminfo\n");
-//         free(iteminfo);
-//         return NULL;
-//     }
-
-//     return iteminfo;
-
-// }
-
-// int fs_closedir(fdDir *dirp)
-// {
-//     printf("\nRunning closedir...\n");
-//     if (dirp != NULL)
-//     {
-//         free(dirp->di);
-//         free(dirp);  
-//         return 0;
-//     }
-//     return -1;
-// }
