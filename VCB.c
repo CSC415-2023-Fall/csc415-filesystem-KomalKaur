@@ -17,8 +17,6 @@
 **************************************************************/
 #include "VCB.h"
 
-void printVCBinf(struct vcb* t1);
-
 int initVCB(uint64_t numberOfBlocks, uint64_t blockSize){
 	printf("---------------- FORMATTING ---------------- \n");
     struct vcb* vcbMain = (struct vcb*)malloc(blockSize); // malloc a pointer to vcb
@@ -39,21 +37,4 @@ int initVCB(uint64_t numberOfBlocks, uint64_t blockSize){
         return 0;
     }
 	
-}
-
-void printVCBinf(struct vcb* t1){
-	printf("~~VCB~~~\n");
-	printf("VCB volume name: %s\n", t1->volumeName);
-	printf("Total Block: %ld\n", t1->totalBlocks);
-	printf("freeBlockCount: %ld\n", t1->freeBlockCount);
-	printf("locFreeSpaceBitMap %i\n", t1->locFreeSpaceBitMap);
-	printf("loc RootDir: %i\n", t1->locRootDir);
-	printf("block size from VCB: %ld\n", t1->blockSize);
-	printf("Signature VCB: %lld\n", t1->Signature);
-}
-
-void printDirEntry(){
-	printf("FILENAME1: %s\n", rootDir[1].fileName);
-
-	printf("CWD FILENAME: %ld\n", cwd[0].size);
 }

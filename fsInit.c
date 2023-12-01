@@ -51,13 +51,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		fs_setcwd("/");
 		ptr = fs_getcwd(dir_buf, 4096);
 
-		//fs_mkdir("/Users", 1);
-		//fs_rmdir("/Users");
-		//testLoadDir("/Users");
-
-		// free(dir_buf);
-
-		//initVCB(numberOfBlocks, blockSize);
+		free(dir_buf);
 		return 0; // volume already is initalized
 	}
 	else

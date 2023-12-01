@@ -37,4 +37,4 @@ struct vcb{
     ull_t Signature;
 } vcb;
 
-int initVCB(uint64_t , uint64_t);
+int initVCB(uint64_t numberOfBlocks, uint64_t blockSize);

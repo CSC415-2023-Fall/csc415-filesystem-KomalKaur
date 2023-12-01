@@ -92,8 +92,6 @@ int fs_mkdir(char *pathname, mode_t mode)
     // Write the updated parent directory back to disk
     LBAwrite(parent, numBlocks, parentStartBlock);
 
-    fs_setcwd(pathname);
-
     // Free allocated memory
     free(pathInfo);
     free(dot);

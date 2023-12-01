@@ -458,7 +458,7 @@ int deleteDirEntry(DirEntry *directory)
         return -1;
     }
 
-    directory->fileName[0] = '\0';
+    strcpy(directory[0].fileName, "-1");
     directory->size = 0;
     directory->extentTable = NULL;
     directory->lastModified = 0;

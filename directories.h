@@ -56,7 +56,8 @@ int parsePath (char * pathname, ppInfo * ppi);
 int findEntryInDir(DirEntry *directory, char *entryName);
 DirEntry *LoadDir(DirEntry *entry);
 int isDir(DirEntry *entry);
-int findEmptySpotInDir(DirEntry *);
-int isDirEmtpy(DirEntry *);
+int findEmptySpotInDir(DirEntry * entry);
+int isDirEmtpy(DirEntry * entry);
+int deleteDirEntry(DirEntry *directory);
 
 #endif
